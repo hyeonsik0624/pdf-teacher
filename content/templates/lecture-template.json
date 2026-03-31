@@ -1,0 +1,44 @@
+{
+  "id": "lecX",
+  "order": 999,
+  "status": "ready",
+  "badge": "Lec X",
+  "type": "core",
+  "title": "강의 제목",
+  "source": "exact pdf file name.pdf",
+  "theme": "핵심 주제",
+  "summary": "이 강의가 무엇을 다루는지 한두 문장으로 요약한다.",
+  "narrative": [
+    "강의 전체 흐름을 설명한다. 단순 요약이 아니라 왜 이 내용이 시험에서 중요한지까지 적는다.",
+    "개념 사이 연결을 풀어서 설명한다. 슬라이드를 읽는 느낌이 아니라 강의를 듣는 느낌이어야 한다.",
+    "실전에서 학생이 헷갈릴 부분을 미리 짚어 준다."
+  ],
+  "concepts": [
+    {
+      "title": "핵심 개념 1",
+      "body": "개념 설명"
+    }
+  ],
+  "commands": [
+    {
+      "name": "명령어 묶음",
+      "syntax": "command syntax",
+      "idea": "핵심 의미",
+      "example": "realistic example",
+      "pitfall": "시험에서 헷갈리는 포인트"
+    }
+  ],
+  "pitfalls": [
+    "헷갈리기 쉬운 포인트"
+  ],
+  "checklist": [
+    "학생이 복습 체크할 항목"
+  ],
+  "quiz": [
+    {
+      "q": "자가 점검 질문",
+      "a": "짧고 명확한 답"
+    }
+  ]
+}
+

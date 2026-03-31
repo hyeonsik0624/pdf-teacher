@@ -1,0 +1,88 @@
+{
+  "order": 2,
+  "status": "ready",
+  "id": "lec3",
+  "badge": "Lec 3",
+  "type": "core",
+  "title": "VIM 입문과 모드 사고방식",
+  "source": "lec3-4471013 editor I.pdf",
+  "theme": "VIM / .bashrc / 저장 / 이동",
+  "summary": "VIM을 왜 배우는지, VIM의 입력 모드와 명령 모드가 어떻게 다르며, 편집 버퍼와 디스크 파일 관계가 어떻게 되는지 이해시키는 강의다.",
+  "narrative": [
+    "이 강의는 VIM을 단축키 모음으로 외우기 전에 '왜 이런 편집기가 존재하는가'를 먼저 설명한다. Linux 환경에서는 설정 파일, 코드, 스크립트, 매뉴얼 조각을 빠르게 수정해야 하므로 CLI 기반 편집기가 중요하다. 그래서 <code>cat</code>이나 <code>more</code>로는 부족한 스크롤, 검색, 치환 기능을 VIM이 맡는다.",
+    "가장 중요한 개념은 모드다. VIM은 시작하자마자 command mode에 있고, 이때 키 입력은 텍스트가 아니라 명령으로 해석된다. 문자를 실제로 입력하려면 input mode로 들어가야 한다. 이 한 문장만 정확히 이해해도 '왜 VIM이 어렵게 느껴지는지'가 풀린다.",
+    "또한 강의는 편집 버퍼와 디스크 파일을 분리해 설명한다. 화면에서 편집한 내용은 메모리의 editing buffer에 반영될 뿐이고, <code>:w</code> 같은 저장 명령을 실행해야 디스크 파일에 기록된다. 즉 편집과 저장은 다른 단계다."
+  ],
+  "concepts": [
+    {
+      "title": ".bashrc의 의미",
+      "body": "<code>.bashrc</code>는 로그인 시 읽히는 bash 시작 파일이다. 숨김 파일이며, 자주 쓰는 alias나 환경 설정을 넣어 두면 로그인할 때 자동으로 적용된다. 즉 '쉘 행동을 미리 정의하는 파일'이다."
+    },
+    {
+      "title": "VIM의 장점",
+      "body": "기본 편집기, 적은 자원 사용, 강력한 단축키, 플러그인, 설정 파일 <code>.vimrc</code> 지원이 포인트다. 마우스 없이도 빠르고 결정적인 편집이 가능하다는 점이 핵심 장점이다."
+    },
+    {
+      "title": "Command mode vs Input mode",
+      "body": "Command mode는 제어 모드이고 Input mode는 실제 텍스트 입력 모드다. 시험에서는 'VIM 시작 기본 모드는 command mode'라는 말을 반드시 붙여 주는 것이 좋다."
+    },
+    {
+      "title": "편집 버퍼와 저장",
+      "body": "버퍼는 메모리 상의 작업 공간이다. 여기에 쓴 내용이 자동으로 파일로 내려가지 않는다. <code>:w</code>는 저장, <code>:q</code>는 종료, <code>:wq</code>는 저장 후 종료다."
+    }
+  ],
+  "commands": [
+    {
+      "name": "VIM 시작과 종료",
+      "syntax": "vim [file]\n:w\n:q\n:q!\n:wq\nZZ",
+      "idea": "파일을 열고, 저장하고, 종료하는 가장 기본 동작이다.",
+      "example": "vim notes.txt\n:wq",
+      "pitfall": "<code>:q</code>는 변경 사항이 남아 있으면 종료가 막힐 수 있고, 강제 종료는 <code>:q!</code>다."
+    },
+    {
+      "name": "입력 모드 진입",
+      "syntax": "i\na\no\nO",
+      "idea": "문자를 실제로 입력하려면 input mode로 들어가야 한다.",
+      "example": "iHello<Esc>\noNew line<Esc>",
+      "pitfall": "<code>i</code>와 <code>a</code>의 차이는 커서 앞/뒤, <code>o</code>와 <code>O</code>는 아래/위 새 줄이다."
+    },
+    {
+      "name": "커서 이동",
+      "syntax": "h j k l\n0 ^ $\nw b\ngg G\n:n",
+      "idea": "문자, 줄, 단어, 파일 범위를 가로질러 이동하는 명령군이다.",
+      "example": "gg\n42G\n$",
+      "pitfall": "<code>0</code>은 줄 맨 앞, <code>^</code>는 공백 제외 첫 문자다."
+    },
+    {
+      "name": "스크롤과 줄 번호",
+      "syntax": "Ctrl+F\nCtrl+B\nCtrl+D\nCtrl+U\n:set number",
+      "idea": "화면 단위 탐색과 현재 위치 파악에 쓰인다.",
+      "example": ":set number\nCtrl+D",
+      "pitfall": "스크롤은 커서 이동과 다르다. 큰 파일에서 화면 단위로 빠르게 훑을 때 특히 중요하다."
+    }
+  ],
+  "pitfalls": [
+    "기본 모드가 입력 모드라고 착각하면 VIM이 계속 오작동처럼 느껴진다.",
+    "<code>:w</code>는 저장이지 종료가 아니다. <code>:q</code>와 역할을 구분해야 한다.",
+    "버퍼와 디스크 파일을 구분하지 못하면 '왜 저장 안 했는데 화면에 보이지?' 같은 혼란이 생긴다."
+  ],
+  "checklist": [
+    "<code>.bashrc</code>와 <code>.vimrc</code>의 역할 차이를 설명할 수 있다.",
+    "VIM의 두 모드를 말로 구분할 수 있다.",
+    "<code>gg</code>, <code>G</code>, <code>:n</code>의 용도를 구분할 수 있다."
+  ],
+  "quiz": [
+    {
+      "q": "VIM에서 파일을 열고 수정한 뒤 저장하지 않으면 내용은 어디에 남아 있는가?",
+      "a": "editing buffer에만 반영되어 있고 디스크 파일에는 아직 기록되지 않는다."
+    },
+    {
+      "q": "<code>0</code>과 <code>^</code>의 차이는?",
+      "a": "<code>0</code>은 줄의 완전한 맨 앞, <code>^</code>는 앞 공백을 건너뛴 첫 문자로 이동한다."
+    },
+    {
+      "q": "<code>ZZ</code>는 어떤 계열의 명령인가?",
+      "a": "저장 후 종료 계열이다. 실전에서 <code>:wq</code>와 같은 맥락으로 외우면 된다."
+    }
+  ]
+}

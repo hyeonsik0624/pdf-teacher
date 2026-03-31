@@ -1,0 +1,96 @@
+{
+  "order": 7,
+  "status": "ready",
+  "id": "lec6",
+  "badge": "Lec 6",
+  "type": "core",
+  "title": "파일, 디렉터리, 권한, 파이프라인",
+  "source": "lec6-4471013-file and dir.pdf",
+  "theme": "경로 / 권한 / 셸 입출력",
+  "summary": "Linux 파일 시스템을 이해하는 데 필요한 거의 모든 기초를 담은 강의다. 파일 종류, 디렉터리 계층, 복사와 삭제, 권한, 메타문자, 리다이렉션, 파이프, history까지 이어진다.",
+  "narrative": [
+    "이 강의는 Linux를 '파일로 모든 것을 다루는 시스템'으로 이해하게 만든다. 일반 파일뿐 아니라 디렉터리, 장치 파일, 표준 입력과 출력도 파일처럼 취급된다는 관점이 처음에는 낯설지만, 뒤의 리다이렉션과 파이프를 이해하려면 꼭 필요하다.",
+    "중간부는 경로와 파일 조작의 감각을 잡는다. <code>cd</code>와 <code>pwd</code>로 현재 위치를 알고, 상대 경로와 절대 경로를 구분하고, <code>mkdir</code>, <code>mv</code>, <code>cp</code>, <code>rm</code>, <code>ls</code>로 구조를 바꾼다. 여기서는 '무엇을 어디로 옮기고 지우는가'가 항상 질문의 핵심이다.",
+    "후반부는 시험에서 가장 자주 틀리는 권한과 셸 입출력이다. <code>rwx</code>가 owner/group/others에 어떻게 배분되는지, <code>755</code>나 <code>644</code>를 어떻게 읽는지, 그리고 <code>&gt;</code>, <code>&gt;&gt;</code>, <code>|</code>, <code>tee</code>, <code>history</code>가 어떤 데이터 흐름을 만들지 정확히 말할 수 있어야 한다."
+  ],
+  "concepts": [
+    {
+      "title": "파일의 넓은 의미",
+      "body": "Linux에서 파일은 단순 문서가 아니라 읽고 쓸 수 있는 추상 자원이다. 일반 파일, 디렉터리, 장치 파일뿐 아니라 표준 입력/출력도 파일처럼 다룬다."
+    },
+    {
+      "title": "텍스트 파일 vs 바이너리 파일",
+      "body": "텍스트 파일은 사람이 읽을 수 있는 문자 기반, 바이너리 파일은 프로그램이 해석해야 의미가 있는 이진 데이터다. 실행 파일은 대표적인 바이너리 파일 예다."
+    },
+    {
+      "title": "디렉터리 계층과 경로",
+      "body": "디렉터리는 다른 파일과 디렉터리를 조직하는 파일이다. 상대 경로는 현재 위치 기준, 절대 경로는 루트부터의 전체 경로다. <code>.</code>, <code>..</code>, <code>~</code> 의미를 정확히 알아야 한다."
+    },
+    {
+      "title": "권한 구조",
+      "body": "권한은 읽기(<code>r</code>), 쓰기(<code>w</code>), 실행(<code>x</code>)의 세 종류이고, owner/group/others 세 사용자 그룹에 따로 부여된다. 숫자 모드는 이 조합을 8진수 세 자리로 표현한다."
+    }
+  ],
+  "commands": [
+    {
+      "name": "경로와 디렉터리 조작",
+      "syntax": "cd [dir]\npwd\nmkdir dir\nrmdir dir\nmv src dst",
+      "idea": "현재 위치 파악, 디렉터리 생성/삭제, 파일과 디렉터리 이동 및 이름 변경을 담당한다.",
+      "example": "pwd\nmkdir ../../course/linux\nmv oldname newname",
+      "pitfall": "<code>mv</code>는 이동뿐 아니라 이름 변경도 한다. <code>rmdir</code>는 비어 있는 디렉터리만 지운다."
+    },
+    {
+      "name": "목록과 내용 확인",
+      "syntax": "ls [-lartR]\ncat file\nmore file\nhead -n n file\ntail -n n file\nfile target",
+      "idea": "무엇이 있는지, 안에 무엇이 있는지, 어떤 종류의 파일인지 확인한다.",
+      "example": "ls -la\nhead -n 20 report.txt\nfile a.out",
+      "pitfall": "<code>ls -a</code>는 숨김 파일 포함, <code>ls -R</code>은 재귀 목록이다. 옵션 의미가 서로 다르다."
+    },
+    {
+      "name": "복사와 삭제",
+      "syntax": "cp file1 file2\ncp -i files dir\ncp -r dir1 dir2\nrm file\nrm -i file\nrm -r dir",
+      "idea": "파일과 디렉터리를 복사하거나 삭제한다.",
+      "example": "cp -i notes.txt backup.txt\ncp -r src backup_src\nrm -r old_dir",
+      "pitfall": "<code>rm -rf /</code>, <code>rm -rf *</code>, <code>rm -rf .</code> 같은 위험 조합은 강의에서 직접 경고한다."
+    },
+    {
+      "name": "권한과 chmod",
+      "syntax": "ls -l\nchmod 755 file\nchmod u+x script.sh\nchmod g-x report.txt",
+      "idea": "현재 권한을 읽고 숫자 모드나 기호 모드로 수정한다.",
+      "example": "chmod 644 notes.txt\nchmod u+x run.sh",
+      "pitfall": "<code>755</code>는 소유자에게 <code>rwx</code>, 그룹과 기타 사용자에게 <code>r-x</code>다. 숫자와 문자 변환을 바로 해야 한다."
+    },
+    {
+      "name": "메타 문자와 파이프",
+      "syntax": "*  ?  [ ]\n>  >>  <\n$(cmd)\n|\ntee [-a] file\nhistory [n]",
+      "idea": "와일드카드, 리다이렉션, 명령 치환, 파이프, 히스토리를 다룬다.",
+      "example": "ls test*\nsort < unsorted | tee sorted\nhistory 10",
+      "pitfall": "<code>&gt;</code>는 파일로 보내고, <code>|</code>는 다음 프로그램으로 보낸다. 목적지가 다르다."
+    }
+  ],
+  "pitfalls": [
+    "<code>rm -f directory</code>만으로는 일반 디렉터리 삭제가 되지 않는다. 디렉터리 재귀 삭제는 보통 <code>-r</code>가 핵심이다.",
+    "실행 권한 <code>x</code>는 파일이면 실행 가능, 디렉터리면 그 안을 통과/열람 가능과 연결된다.",
+    "<code>grep</code>은 파일 내용에 쓰고, 와일드카드 <code>*</code>는 셸이 먼저 파일 이름 확장에 쓴다는 점을 구분하라.",
+    "<code>tee</code>는 stdout도 유지하면서 파일에도 저장하는 특수한 파이프 도구다."
+  ],
+  "checklist": [
+    "상대 경로와 절대 경로를 예시로 설명할 수 있다.",
+    "<code>755</code>, <code>644</code>, <code>400</code>을 문자 권한으로 바꿀 수 있다.",
+    "<code>&gt;</code>, <code>&gt;&gt;</code>, <code>|</code>, <code>tee</code>의 데이터 흐름 차이를 설명할 수 있다."
+  ],
+  "quiz": [
+    {
+      "q": "<code>rmdir</code>와 <code>rm -r</code>의 차이는?",
+      "a": "<code>rmdir</code>는 비어 있는 디렉터리만 삭제하고, <code>rm -r</code>는 하위 내용까지 재귀적으로 삭제할 수 있다."
+    },
+    {
+      "q": "왜 디렉터리도 파일이라고 설명하는가?",
+      "a": "다른 파일과 디렉터리에 접근하기 위한 정보를 저장하는 특수한 파일이기 때문이다."
+    },
+    {
+      "q": "<code>sort &lt; unsorted | tee sorted</code>와 <code>sort &lt; unsorted &gt; sorted</code>의 차이는?",
+      "a": "둘 다 정렬 결과를 파일로 남길 수 있지만, <code>tee</code>를 쓰면 결과가 화면(stdout)에도 유지되고 동시에 파일에도 저장된다."
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF 시험 강의 노트</title>
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="googlebot" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="eyebrow" id="hero-eyebrow">PDF 기반 시험 강의 노트</p>
+          <nav id="course-tabs" class="course-tabs" aria-label="과목 선택"></nav>
+        </div>
+        <div class="hero-grid">
+          <section class="hero-copy">
+            <h1 id="hero-title"></h1>
+            <p id="hero-summary" class="hero-summary"></p>
+            <div class="hero-actions">
+              <a class="action primary" href="#lectures">강의별 해설 보기</a>
+              <a class="action secondary" href="#atlas">아틀라스 빠르게 보기</a>
+            </div>
+            <div id="stats" class="stats"></div>
+          </section>
+          <aside class="hero-card">
+            <p class="mini-label">시험 직전 암기 문장</p>
+            <ul id="memory-lines" class="memory-lines"></ul>
+          </aside>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <section class="panel" id="overview">
+          <div class="section-head">
+            <div>
+              <p class="mini-label">Overview</p>
+              <h2>시험장에서 바로 써먹는 큰 그림</h2>
+            </div>
+          </div>
+          <div id="exam-map" class="card-grid"></div>
+          <div class="section-head split-space">
+            <div>
+              <p class="mini-label">Cram Route</p>
+              <h3>60분 압축 복습 루트</h3>
+            </div>
+          </div>
+          <div id="cram-plan" class="timeline"></div>
+        </section>
+
+        <section class="panel" id="vim-cheat">
+          <div class="section-head">
+            <div>
+              <p class="mini-label" id="quick-guide-label">Quick Guide</p>
+              <h2 id="quick-guide-title">핵심 생존 가이드</h2>
+            </div>
+          </div>
+          <div id="vim-groups" class="cheat-grid"></div>
+        </section>
+
+        <section class="panel" id="lectures">
+          <div class="section-head split-space">
+            <div>
+              <p class="mini-label">Deep Dive</p>
+              <h2>강의별 시험용 재설명</h2>
+            </div>
+          </div>
+          <nav id="lecture-nav" class="lecture-nav" aria-label="강의 네비게이션"></nav>
+          <div id="lecture-list" class="lecture-list"></div>
+        </section>
+
+        <section class="panel" id="atlas">
+          <div class="section-head atlas-head">
+            <div>
+              <p class="mini-label" id="atlas-label">Exam Atlas</p>
+              <h2 id="atlas-title">시험 아틀라스</h2>
+            </div>
+            <label class="searchbox" for="command-filter">
+              <span>필터</span>
+              <input
+                id="command-filter"
+                type="search"
+                placeholder="예: 핵심어, 이론, 명령어"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+          <div id="atlas-groups" class="atlas-groups"></div>
+        </section>
+
+        <section class="panel" id="practice">
+          <div class="section-head">
+            <div>
+              <p class="mini-label" id="drill-label">Drills</p>
+              <h2 id="drill-title">실전 대비 문제 루틴</h2>
+            </div>
+          </div>
+          <div id="study-drills" class="drill-grid"></div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p id="source-note"></p>
+      </footer>
+    </div>
+
+    <script src="study-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

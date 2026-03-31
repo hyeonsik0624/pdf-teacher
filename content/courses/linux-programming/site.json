@@ -1,0 +1,324 @@
+{
+  "meta": {
+    "title": "리눅스 프로그래밍 시험 강의 노트",
+    "summary": "Desktop/리눅스프로그래밍 폴더의 강의 PDF 7개를 바탕으로, 운영체제 개념부터 VIM, 파일·디렉터리, 권한, 파이프까지 시험 대비용 설명으로 다시 엮은 학습 사이트다. 목적은 슬라이드를 그냥 읽는 것이 아니라, '왜 이 명령을 쓰는지'와 '시험에서 어떻게 설명해야 하는지'를 한 번에 잡는 것이다.",
+    "sourceFolder": "/Users/hyeonsik/Desktop/리눅스프로그래밍",
+    "courseLabel": "리눅스 프로그래밍",
+    "quickGuideLabel": "VIM Survival",
+    "quickGuideTitle": "VIM을 한 번에 잡는 생존 매뉴얼",
+    "atlasLabel": "Command Atlas",
+    "atlasTitle": "명령어 아틀라스",
+    "atlasFilterPlaceholder": "예: grep, chmod, :wq, pipe",
+    "drillLabel": "Drills",
+    "drillTitle": "실전 대비 문제 루틴",
+    "lectureDetailMiniLabel": "Commands",
+    "lectureDetailTitle": "시험용 명령어 해설",
+    "lectureSyntaxLabel": "기본 형식",
+    "lectureExampleLabel": "예시",
+    "lectureDetailEmpty": "아직 이 강의의 명령어 해설이 작성되지 않았습니다.",
+    "statsLectureCards": "강의 해설 명령",
+    "statsAtlasItems": "핵심 명령 묶음"
+  },
+  "fastRecall": [
+    "Operating System은 하드웨어와 응용 프로그램 사이에서 자원을 관리하는 소프트웨어다.",
+    "Shell은 사용자의 명령을 해석해서 kernel에 전달하는 command interpreter다.",
+    "VIM에서는 입력한 글자가 바로 디스크에 저장되지 않고 editing buffer에 먼저 반영된다.",
+    "파이프는 앞 명령의 <code>stdout</code>을 뒤 명령의 <code>stdin</code>으로 연결한다.",
+    "권한 숫자 755는 <code>rwx r-x r-x</code>, 644는 <code>rw- r-- r--</code>로 읽는다.",
+    "<code>rm -rf</code>는 되돌리기 어려우므로 경로를 두 번 확인하고 실행해야 한다."
+  ],
+  "examMap": [
+    {
+      "title": "운영체제는 '자원 관리자'로 설명하라",
+      "body": "슬라이드는 OS를 단순한 프로그램 묶음이 아니라 메모리, 프로세스, 장치, 파일 시스템을 관리하는 층으로 설명한다. 시험 답안에서는 '사용자에게는 프로그램 실행 환경, 프로그래머에게는 이해해야 하는 시스템'이라고 정리하면 강의 흐름과 맞는다."
+    },
+    {
+      "title": "Linux 이해의 중심은 Shell과 Kernel의 분리다",
+      "body": "사용자는 shell prompt에서 명령을 입력하고, shell이 이를 해석해 kernel과 상호작용한다. 그래서 <code>login → shell prompt → command → kernel/service</code> 흐름을 머릿속에 넣어두면 명령어 문제와 구조 문제를 같이 푼다."
+    },
+    {
+      "title": "VIM은 모드 기반 편집기라는 점이 핵심이다",
+      "body": "초보자가 가장 헷갈리는 지점은 '왜 타이핑했는데 글자가 안 써지지?'다. 이유는 기본이 command mode이기 때문이다. 입력은 input mode에서 하고, 편집 제어는 command mode에서 한다는 문장을 바로 말할 수 있어야 한다."
+    },
+    {
+      "title": "파일 시스템 문제는 경로와 권한을 동시에 본다",
+      "body": "상대 경로와 절대 경로, 파일/디렉터리 차이, <code>cd</code>·<code>mv</code>·<code>cp</code>·<code>rm</code>, 그리고 <code>rwx</code> 권한 구조가 한 묶음이다. 명령 자체보다 '무엇을 누구에게 허용하는가'가 답의 중심이다."
+    },
+    {
+      "title": "리다이렉션과 파이프는 입출력 흐름으로 외워라",
+      "body": "<code>&gt;</code>, <code>&gt;&gt;</code>, <code>&lt;</code>, <code>|</code>, <code>tee</code>는 문법 암기보다 데이터가 어디로 흐르는지로 이해해야 한다. 같은 내용을 '화면에만', '파일에만', '둘 다'로 구분하면 헷갈림이 줄어든다."
+    },
+    {
+      "title": "실습 PDF는 시험용 손동작을 고정하는 용도다",
+      "body": "실습 자료는 새로운 이론보다는 손이 먼저 움직이도록 만드는 자료다. VIM에서 줄 삭제, 붙여넣기, 치환을 반복하고, 쉘에서는 옵션 확인과 계산, 파일 조작을 해 보면서 답을 자동화하는 데 의미가 있다."
+    }
+  ],
+  "cramPlan": [
+    {
+      "time": "0-15분",
+      "title": "운영체제 / Shell 틀 잡기",
+      "body": "<code>OS → kernel → shell → command</code> 구조, 로그인과 프롬프트 의미, <code>date</code>·<code>who</code>·<code>man</code>의 차이를 먼저 정리한다."
+    },
+    {
+      "time": "15-35분",
+      "title": "VIM 모드와 편집 동작",
+      "body": "<code>i/a/o</code>, <code>Esc</code>, <code>:wq</code>, 이동, 삭제, 복사, 붙여넣기, 치환을 한 세트로 복습한다. 특히 <code>p/P</code>, <code>u/.</code>, <code>yy/dd</code>의 의미를 말로 설명할 수 있어야 한다."
+    },
+    {
+      "time": "35-50분",
+      "title": "파일 / 디렉터리 / 권한",
+      "body": "상대 경로와 절대 경로, <code>cd</code>/<code>pwd</code>/<code>mkdir</code>/<code>mv</code>/<code>cp</code>/<code>rm</code>, <code>755</code>와 <code>644</code> 해석을 집중 복습한다."
+    },
+    {
+      "time": "50-60분",
+      "title": "파이프 / 리다이렉션 / 자주 나오는 비교",
+      "body": "<code>cat</code> vs <code>more</code>, <code>grep</code> vs <code>find</code>, <code>who</code> vs <code>w</code> vs <code>whoami</code>, <code>&gt;</code> vs <code>&gt;&gt;</code> vs <code>| tee</code>를 마지막으로 정리한다."
+    }
+  ],
+  "vimCheat": [
+    {
+      "title": "모드 전환",
+      "bullets": [
+        "<code>i</code>: 현재 커서 앞에서 입력 시작",
+        "<code>a</code>: 현재 커서 뒤에서 입력 시작",
+        "<code>o</code>/<code>O</code>: 현재 줄 아래/위에 새 줄 만들고 입력",
+        "<code>Esc</code>: 언제든 command mode로 복귀",
+        "<code>:w</code>, <code>:q</code>, <code>:q!</code>, <code>:wq</code>, <code>ZZ</code>는 저장/종료 계열 명령"
+      ]
+    },
+    {
+      "title": "이동",
+      "bullets": [
+        "<code>h j k l</code>: 좌 하 상 우",
+        "<code>0</code>, <code>^</code>, <code>$</code>: 줄 시작, 공백 제외 첫 문자, 줄 끝",
+        "<code>w</code>, <code>b</code>: 다음 단어 시작, 이전 단어 시작",
+        "<code>gg</code>, <code>G</code>, <code>:n</code>, <code>nG</code>: 파일/줄 단위 점프",
+        "<code>Ctrl+F/B/D/U</code>: 한 화면 또는 반 화면 단위 스크롤"
+      ]
+    },
+    {
+      "title": "수정 / 삭제 / 복사",
+      "bullets": [
+        "<code>r</code>: 현재 문자 1개 덮어쓰기",
+        "<code>R</code>, <code>s</code>, <code>C</code>, <code>cc</code>, <code>cw</code>: 내용 바꾸기 계열",
+        "<code>x</code>, <code>X</code>, <code>D</code>, <code>dd</code>: 삭제 계열",
+        "<code>yy</code>, <code>nY</code>, <code>:from,to y</code>: 줄 복사",
+        "<code>p</code>/<code>P</code>: 뒤에 붙여넣기 / 앞에 붙여넣기"
+      ]
+    },
+    {
+      "title": "검색 / 치환",
+      "bullets": [
+        "<code>/pattern</code>, <code>n</code>, <code>N</code>: 검색과 다음/이전 결과 이동",
+        "<code>^</code>, <code>$</code>, <code>\\&lt;</code>, <code>\\&gt;</code>: 라인/단어 경계",
+        "<code>[0-9]</code>, <code>[^0-9]</code>, <code>\\d</code>, <code>\\s</code>, <code>.</code>: 문자 클래스",
+        "<code>:%s/pattern/string/g</code>: 전체 범위 치환",
+        "<code>c</code>, <code>i</code>, <code>I</code>, <code>g</code> 옵션의 의미를 꼭 기억"
+      ]
+    }
+  ],
+  "commandAtlas": [
+    {
+      "title": "시스템 상태와 사용자",
+      "items": [
+        {
+          "name": "date",
+          "use": "현재 날짜와 시간을 본다. <code>-u</code>는 UTC 기준.",
+          "compare": "시간 자체 확인용. 사용자 정보와는 무관하다.",
+          "example": "date -u"
+        },
+        {
+          "name": "users / who / w / whoami / id",
+          "use": "로그인 사용자와 자신의 계정 정보를 본다.",
+          "compare": "<code>users</code>는 단순 이름, <code>who</code>는 로그인 정보, <code>w</code>는 현재 작업 포함, <code>whoami</code>는 나 자신, <code>id</code>는 UID/GID까지.",
+          "example": "who\nw\nid"
+        },
+        {
+          "name": "hostname / uname",
+          "use": "호스트 이름과 시스템 정보를 확인한다.",
+          "compare": "호스트 식별 vs 시스템/커널 정보로 구분.",
+          "example": "hostname\nuname -a"
+        },
+        {
+          "name": "last",
+          "use": "과거 로그인 기록을 확인한다.",
+          "compare": "현재 로그인만 보는 <code>who</code>와 대비된다.",
+          "example": "last"
+        }
+      ]
+    },
+    {
+      "title": "파일 탐색과 내용 보기",
+      "items": [
+        {
+          "name": "ls",
+          "use": "파일과 디렉터리 목록을 본다.",
+          "compare": "<code>-l</code> 긴 형식, <code>-a</code> 숨김 포함, <code>-t</code> 수정 시간, <code>-R</code> 재귀.",
+          "example": "ls -la"
+        },
+        {
+          "name": "cat / more / head / tail",
+          "use": "파일 내용을 보는 계열.",
+          "compare": "전체 출력, 화면 단위, 앞부분, 뒷부분으로 역할을 나눈다.",
+          "example": "head -n 20 main.c\ntail -n 50 app.log"
+        },
+        {
+          "name": "file",
+          "use": "대상의 파일 종류를 확인한다.",
+          "compare": "내용을 출력하지 않고 타입을 판별한다.",
+          "example": "file a.out"
+        }
+      ]
+    },
+    {
+      "title": "파일 / 디렉터리 조작",
+      "items": [
+        {
+          "name": "cd / pwd",
+          "use": "현재 작업 디렉터리 이동과 확인.",
+          "compare": "<code>cd</code>는 상태 변경, <code>pwd</code>는 현재 상태 확인.",
+          "example": "cd ~/course/linux\npwd"
+        },
+        {
+          "name": "mkdir / rmdir",
+          "use": "디렉터리 생성과 삭제.",
+          "compare": "<code>rmdir</code>는 비어 있을 때만 안전하게 삭제 가능.",
+          "example": "mkdir /home/${USER}/course/linux"
+        },
+        {
+          "name": "mv / cp / rm",
+          "use": "이동(또는 이름 변경), 복사, 삭제.",
+          "compare": "<code>mv</code>는 rename 가능, <code>cp -r</code>는 디렉터리 복사, <code>rm -r</code>는 재귀 삭제.",
+          "example": "mv report.txt old_report.txt\ncp -r dir1 dir2\nrm -i note.txt"
+        },
+        {
+          "name": "alias",
+          "use": "자주 쓰는 명령에 별칭을 붙인다.",
+          "compare": "보통 <code>.bashrc</code>에 넣어 자동 로드한다.",
+          "example": "alias ll='ls -l'"
+        }
+      ]
+    },
+    {
+      "title": "검색과 정리",
+      "items": [
+        {
+          "name": "grep",
+          "use": "파일 내용에서 패턴이 있는 줄을 찾는다.",
+          "compare": "<code>find</code>와 달리 내용 기반 검색이다.",
+          "example": "grep -n \"from\" file2"
+        },
+        {
+          "name": "find",
+          "use": "이름 패턴으로 파일과 디렉터리를 찾는다.",
+          "compare": "내용이 아니라 경로/이름을 찾는다.",
+          "example": "find . -iname \"*.txt\""
+        },
+        {
+          "name": "sort / wc / split",
+          "use": "정렬, 개수 세기, 파일 분할.",
+          "compare": "<code>sort -n</code> 숫자 정렬, <code>wc -l</code> 줄 수, <code>split -l</code> 행 단위 분할.",
+          "example": "sort -n scores.txt\nwc -l main.c\nsplit -l 1000 big.txt part_"
+        }
+      ]
+    },
+    {
+      "title": "권한과 셸 입출력",
+      "items": [
+        {
+          "name": "chmod",
+          "use": "파일/디렉터리 권한을 수정한다.",
+          "compare": "숫자 모드와 기호 모드를 둘 다 이해해야 한다.",
+          "example": "chmod 755 run.sh\nchmod u+x run.sh"
+        },
+        {
+          "name": "> / >> / <",
+          "use": "출력 덮어쓰기, 출력 추가, 입력 리다이렉션.",
+          "compare": "모두 파일과 연결된다. 프로그램 연결은 파이프가 담당한다.",
+          "example": "cat file1 > file2\nsort < unsorted"
+        },
+        {
+          "name": "| / tee",
+          "use": "앞 명령의 출력이 뒤 명령의 입력으로 들어간다.",
+          "compare": "<code>tee</code>는 흐름을 유지하면서 파일 저장까지 한다.",
+          "example": "ls | grep file\nsort < unsorted | tee sorted"
+        },
+        {
+          "name": "history",
+          "use": "이전에 실행한 명령을 확인하고 재사용한다.",
+          "compare": "<code>!!</code>는 직전 명령, <code>!n</code>은 n번째 명령 재실행.",
+          "example": "history 20\n!!"
+        }
+      ]
+    },
+    {
+      "title": "VIM 핵심 명령",
+      "items": [
+        {
+          "name": "입력/저장",
+          "use": "<code>i</code>, <code>a</code>, <code>o</code>, <code>Esc</code>, <code>:wq</code>로 편집의 기본 루프를 만든다.",
+          "compare": "입력 모드 진입 위치와 종료 동작 차이를 이해해야 한다.",
+          "example": "ihello<Esc>\n:wq"
+        },
+        {
+          "name": "이동",
+          "use": "<code>h j k l</code>, <code>0</code>, <code>$</code>, <code>w</code>, <code>b</code>, <code>gg</code>, <code>G</code>로 위치를 제어한다.",
+          "compare": "문자, 단어, 줄, 파일 범위를 넘나드는 이동 계열이다.",
+          "example": "gg\n42G\n$"
+        },
+        {
+          "name": "편집",
+          "use": "<code>cw</code>, <code>cc</code>, <code>x</code>, <code>dd</code>, <code>yy</code>, <code>p</code>, <code>u</code>, <code>.</code>",
+          "compare": "삭제/복사/붙여넣기 모두 버퍼를 공유한다.",
+          "example": "yy\np\nu\n."
+        },
+        {
+          "name": "검색/치환",
+          "use": "<code>/pattern</code>, <code>n</code>, <code>N</code>, <code>:%s/old/new/g</code>",
+          "compare": "검색 결과 이동과 범위 치환을 묶어서 이해해야 한다.",
+          "example": "/linux\n:%s/Linux/linux/g"
+        }
+      ]
+    }
+  ],
+  "studyDrills": [
+    {
+      "title": "서술형 1분 답안 훈련",
+      "body": "아래 문장을 소리 내어 3번 말하면 운영체제/셸/권한 문제에서 문장 틀이 잡힌다.",
+      "bullets": [
+        "Shell은 사용자의 명령을 해석해 kernel에 전달하는 command interpreter다.",
+        "VIM의 기본 모드는 command mode이고, 입력은 input mode에서 수행한다.",
+        "파일 권한은 owner, group, others에 대해 read, write, execute를 각각 부여한다."
+      ]
+    },
+    {
+      "title": "VIM 손 루틴",
+      "body": "빈 파일에서 아래 순서로 5번 반복한다. 멈춤 없이 이어지는지가 중요하다.",
+      "bullets": [
+        "<code>vim test.txt</code>로 열기",
+        "<code>i</code>로 입력하고 <code>Esc</code>로 나오기",
+        "<code>yy</code>, <code>p</code>, <code>dd</code>, <code>u</code> 순서 연습",
+        "<code>:%s/old/new/g</code> 한 번 수행 후 <code>:wq</code>"
+      ]
+    },
+    {
+      "title": "파일 시스템 확인 루틴",
+      "body": "경로와 권한은 머리보다 손으로 확인하는 편이 오래 간다.",
+      "bullets": [
+        "<code>pwd</code>로 현재 위치 확인",
+        "<code>mkdir</code>와 <code>cd</code>로 하위 구조 만들기",
+        "<code>ls -l</code>로 권한 읽기",
+        "<code>chmod 755</code>와 <code>chmod u+x</code>를 비교 적용하기"
+      ]
+    },
+    {
+      "title": "파이프 / 리다이렉션 구별 문제",
+      "body": "아래 둘의 차이를 설명할 수 있으면 입출력 문제는 거의 정리된다.",
+      "bullets": [
+        "<code>cat file &gt; out.txt</code>: 출력이 파일로 간다.",
+        "<code>cat file | more</code>: 출력이 다음 프로그램의 입력으로 간다.",
+        "<code>sort &lt; unsorted | tee sorted</code>: 화면에도 보이고 파일에도 저장된다."
+      ]
+    }
+  ]
+}

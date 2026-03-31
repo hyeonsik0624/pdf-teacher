@@ -1,0 +1,88 @@
+{
+  "order": 3,
+  "status": "ready",
+  "id": "lec4",
+  "badge": "Lec 4",
+  "type": "core",
+  "title": "VIM 편집 조작, 삭제, 복사, 붙여넣기",
+  "source": "lec4-4471013-editor II.pdf",
+  "theme": "입력 전환 / 수정 / 버퍼 활용",
+  "summary": "VIM에서 내용을 바꾸는 실제 손동작을 다룬다. 삽입, 변경, 삭제, 붙여넣기, 복사, 선택을 묶어서 '편집 버퍼를 다루는 법'으로 이해해야 한다.",
+  "narrative": [
+    "이 강의는 VIM을 진짜 편집기에 가깝게 만들어 준다. 단순 이동이 아니라 텍스트를 효율적으로 고치는 동작을 배우기 때문이다. 특히 <code>r</code>, <code>R</code>, <code>s</code>, <code>C</code>, <code>cc</code>, <code>cw</code>처럼 '무엇을 지우고 어떤 모드로 들어가는지'가 명령마다 다르다.",
+    "삭제와 복사, 붙여넣기는 모두 임시 버퍼를 공유한다는 점이 중요하다. <code>dd</code>로 줄을 지우면 사라지는 동시에 버퍼에 저장되고, 이어서 <code>p</code>나 <code>P</code>로 다시 넣을 수 있다. 그래서 이 강의의 진짜 핵심은 '편집 버퍼를 이용한 재사용'이다.",
+    "시험에서는 각 명령의 미세한 차이를 묻기 쉽다. 예를 들어 <code>p</code>와 <code>P</code>, <code>x</code>와 <code>X</code>, <code>cw</code>와 <code>cc</code>를 비교하면 된다. 비교형으로 공부해야 오래 간다."
+  ],
+  "concepts": [
+    {
+      "title": "삽입 시작 위치 차이",
+      "body": "<code>i</code>/<code>I</code>/<code>a</code>/<code>A</code>/<code>o</code>/<code>O</code>는 모두 input mode로 들어가지만 시작 위치가 다르다. 이 차이를 이해하면 줄 전체를 다시 쓰는 작업이 빨라진다."
+    },
+    {
+      "title": "change 계열 명령",
+      "body": "<code>cw</code>는 현재 단어를 바꾸고, <code>cc</code>는 현재 줄 전체를 바꾸며, <code>C</code>는 현재 커서부터 줄 끝까지 바꾼다. 즉 범위가 다르다."
+    },
+    {
+      "title": "undo와 반복",
+      "body": "<code>u</code>는 직전 작업 취소, <code>.</code>는 직전 편집 동작 반복이다. 특히 <code>.</code>는 동일한 수정을 여러 위치에 빠르게 재적용할 때 매우 강력하다."
+    },
+    {
+      "title": "visual selection",
+      "body": "<code>v</code>는 일반 시각 선택, <code>Ctrl+v</code>는 블록 선택이다. 선택 후 삭제, 복사, 수정, 붙여넣기 같은 다른 동작과 결합할 수 있다."
+    }
+  ],
+  "commands": [
+    {
+      "name": "change 계열",
+      "syntax": "r\nR\ns\nC\ncc\ncw",
+      "idea": "문자 하나만 덮어쓸지, 현재 단어를 바꿀지, 현재 줄을 갈아엎을지를 고르는 명령군이다.",
+      "example": "cwnew_word<Esc>\nccrewritten line<Esc>",
+      "pitfall": "<code>r</code>만 command mode에 남고, 나머지 다수는 input mode로 넘어간다는 차이를 기억해야 한다."
+    },
+    {
+      "name": "undo / repeat",
+      "syntax": "u\n.",
+      "idea": "한 번 취소하고, 한 번 더 같은 편집을 반복한다.",
+      "example": "cwlinux<Esc>\n.\n.",
+      "pitfall": "<code>.</code>는 마지막 '편집 행동'을 반복하는 것이지 마지막 키 하나를 반복하는 것이 아니다."
+    },
+    {
+      "name": "삭제와 붙여넣기",
+      "syntax": "x\nX\nD\ndd\np\nP",
+      "idea": "삭제된 내용은 임시 버퍼에 남아 다시 붙일 수 있다.",
+      "example": "dd\nP",
+      "pitfall": "<code>p</code>는 뒤, <code>P</code>는 앞에 붙인다. 줄 단위와 문자 단위 동작이 섞이면 위치 감각이 흔들리기 쉽다."
+    },
+    {
+      "name": "복사와 선택",
+      "syntax": "yy\n3Y\n:5,8 y\nv\nCtrl+v\n~",
+      "idea": "현재 줄, 여러 줄, 범위 줄 복사와 시각 선택을 다룬다.",
+      "example": "yy\np\n:5,8 y\nP",
+      "pitfall": "복사도 삭제처럼 버퍼를 사용한다. 그래서 복사 후 붙여넣기 흐름을 같이 외워야 한다."
+    }
+  ],
+  "pitfalls": [
+    "<code>dd</code>는 단순 삭제가 아니라 줄을 잘라 버퍼에 넣는 동작으로 이해해야 한다.",
+    "<code>C</code>, <code>cc</code>, <code>cw</code>는 모두 change 계열이지만 삭제 범위가 다르다.",
+    "선택 모드에서도 결국 다른 명령과 결합한다는 점을 놓치면 활용을 못 한다."
+  ],
+  "checklist": [
+    "<code>p</code>와 <code>P</code>의 방향 차이를 설명할 수 있다.",
+    "<code>cw</code>, <code>cc</code>, <code>C</code>의 범위를 비교할 수 있다.",
+    "삭제된 내용이 임시 버퍼에 남는다는 사실을 말할 수 있다."
+  ],
+  "quiz": [
+    {
+      "q": "<code>dd</code> 한 뒤 <code>P</code>를 누르면 무슨 일이 벌어지는가?",
+      "a": "지운 현재 줄이 임시 버퍼에 남아 있으므로, 현재 위치 앞쪽에 다시 붙는다."
+    },
+    {
+      "q": "<code>cw</code>와 <code>cc</code>의 차이는?",
+      "a": "<code>cw</code>는 현재 단어를 바꾸고, <code>cc</code>는 현재 줄 전체를 바꾼다."
+    },
+    {
+      "q": "<code>.</code> 명령은 왜 생산성이 높은가?",
+      "a": "방금 수행한 편집 패턴을 그대로 반복해 주기 때문에 같은 수정 작업을 여러 위치에서 빠르게 재현할 수 있다."
+    }
+  ]
+}

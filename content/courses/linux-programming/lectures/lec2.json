@@ -1,0 +1,89 @@
+{
+  "order": 1,
+  "status": "ready",
+  "id": "lec2",
+  "badge": "Lec 2",
+  "type": "core",
+  "title": "운영체제와 Linux 기본기",
+  "source": "lec2-4471013 Linux basic.pdf",
+  "theme": "OS / 계정 / 기본 명령",
+  "summary": "운영체제가 무엇을 하는지, Linux가 어떤 역사와 구조를 갖는지, 그리고 로그인 후 어떤 기본 명령으로 시스템과 상호작용하는지 잡아 주는 시작 강의다.",
+  "narrative": [
+    "이 강의의 핵심은 Linux를 '명령어 모음'이 아니라 '운영체제 위에서 돌아가는 환경'으로 이해하게 만드는 데 있다. 슬라이드는 운영체제를 자원 관리자라고 부른다. 즉 CPU, 메모리, 장치, 파일 시스템 같은 자원을 여러 사용자와 프로그램이 충돌 없이 쓰게 해 주는 층이다.",
+    "또 하나의 줄기는 UNIX에서 Linux로 이어지는 역사다. 이 부분은 연도 암기보다 왜 Linux가 널리 쓰이는지 설명할 수 있으면 충분하다. 다중 사용자, 이식성, 계층 구조, 쉘과 커널의 분리 같은 특징이 현재 Linux 사용성의 이유가 된다.",
+    "실전에서는 로그인 이후 보게 되는 shell prompt와 기본 명령의 역할을 이해해야 한다. 사용자는 shell에 명령을 입력하고, shell은 이를 해석해 kernel이 수행하도록 연결한다. 그래서 <code>date</code>, <code>who</code>, <code>ls</code>, <code>man</code> 같은 명령도 단순 기능이 아니라 '시스템 상태를 읽는 인터페이스'로 보는 것이 맞다."
+  ],
+  "concepts": [
+    {
+      "title": "Operating System의 정의",
+      "body": "OS는 응용 프로그램이 실행될 수 있는 기반을 제공하고, 동시에 메모리 관리, 프로세스 관리, 장치 관리, 파일 시스템 관리를 담당한다. 시험에서는 '하드웨어 위에서 응용 프로그램과 사용자를 연결하는 자원 관리자'라고 정리하면 안정적이다."
+    },
+    {
+      "title": "Kernel과 Shell의 역할 분리",
+      "body": "Kernel은 실제 자원 관리의 중심이고, shell은 사용자의 명령을 읽고 해석하는 명령 해석기다. 사용자가 직접 kernel에 말하는 것이 아니라 shell을 통해 커널 서비스를 요청한다."
+    },
+    {
+      "title": "계정과 로그인",
+      "body": "Linux 계정은 ID와 비밀번호로 식별되며, 로그인은 시스템 사용 권한을 얻는 과정이다. 로그인 뒤에는 사용자 환경이 구성되고 shell prompt가 나타난다."
+    },
+    {
+      "title": "기본 명령의 묶음",
+      "body": "시간 확인, 접속 사용자 확인, 파일 목록 확인, 파일 내용 보기, 비밀번호 변경, 로그인 기록, 도움말 확인, 명령 위치 확인, 호스트/시스템 정보 확인이 한 세트다. 명령 자체보다 '무슨 종류의 정보를 보는가'로 분류해 외우면 오래 간다."
+    }
+  ],
+  "commands": [
+    {
+      "name": "date / who / last",
+      "syntax": "date [-u]\nwho\nlast",
+      "idea": "현재 시간, 현재 로그인 사용자, 과거 로그인 기록을 보는 기본 계열이다.",
+      "example": "date\nwho\nlast",
+      "pitfall": "<code>who</code>는 '지금 누가 로그인 중인지', <code>last</code>는 '과거 로그인 이력'이라는 차이를 구분해야 한다."
+    },
+    {
+      "name": "ls / cat / more",
+      "syntax": "ls\ncat file\nmore file",
+      "idea": "<code>ls</code>는 목록, <code>cat</code>은 작은 파일의 전체 출력, <code>more</code>는 긴 파일을 화면 단위로 보는 데 적합하다.",
+      "example": "ls -l\ncat notes.txt\nmore very_long.txt",
+      "pitfall": "큰 파일을 한 번에 읽을 때는 <code>cat</code>보다 <code>more</code>가 낫다. 시험에서 용도 비교 문제가 자주 나온다."
+    },
+    {
+      "name": "passwd / man / info / whatis",
+      "syntax": "passwd\nman ls\ninfo ls\nwhatis ls",
+      "idea": "설정 변경과 도움말 계열 명령이다. 깊이는 <code>man</code>이 가장 일반적이고, <code>whatis</code>는 짧은 한 줄 설명에 가깝다.",
+      "example": "passwd\nman hostname\nwhatis uname",
+      "pitfall": "<code>whatis</code>는 명령의 존재 설명이고, 상세 사용법은 <code>man</code>이나 <code>info</code>를 봐야 한다."
+    },
+    {
+      "name": "which / hostname / uname",
+      "syntax": "which ls\nhostname\nuname",
+      "idea": "명령 위치, 호스트 이름, 시스템 정보를 보는 계열이다.",
+      "example": "which vim\nhostname\nuname -a",
+      "pitfall": "<code>which</code>는 실행 파일 위치를 보여줄 뿐 명령 설명까지는 하지 않는다."
+    }
+  ],
+  "pitfalls": [
+    "운영체제를 응용 프로그램과 같은 수준으로 설명하면 안 된다. 한 단계 아래에서 자원을 관리하는 층이다.",
+    "Shell prompt는 단순 장식이 아니라 '명령을 받을 준비가 된 상태'를 뜻한다.",
+    "<code>exit</code>와 <code>logout</code>은 셸 세션 종료의 의미로 같이 묶여 나온다.",
+    "<code>cat</code>과 <code>more</code>의 차이는 출력 방식과 파일 크기 적합성이다."
+  ],
+  "checklist": [
+    "OS, kernel, shell의 관계를 2문장 안에 설명할 수 있다.",
+    "로그인 이후 프롬프트가 뜨는 이유를 설명할 수 있다.",
+    "<code>who</code>, <code>last</code>, <code>which</code>, <code>uname</code>의 역할을 구분할 수 있다."
+  ],
+  "quiz": [
+    {
+      "q": "왜 shell을 command interpreter라고 부르는가?",
+      "a": "사용자가 입력한 문자열 명령을 읽고 해석해서 kernel이 이해할 수 있는 요청 흐름으로 연결하기 때문이다."
+    },
+    {
+      "q": "<code>cat</code> 대신 <code>more</code>를 써야 하는 상황은?",
+      "a": "파일이 길어서 화면 단위로 확인해야 할 때다. <code>cat</code>은 전체를 한 번에 뿌려 버리므로 긴 파일 확인에는 불편하다."
+    },
+    {
+      "q": "<code>which</code>와 <code>man</code>의 차이는?",
+      "a": "<code>which</code>는 명령 실행 파일의 위치를 찾고, <code>man</code>은 그 명령의 매뉴얼을 보여 준다."
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "order": 5,
+  "status": "ready",
+  "id": "lec5",
+  "badge": "Lec 5",
+  "type": "core",
+  "title": "VIM 고급 기능과 추가 Linux 명령",
+  "source": "lec5-4471013-editor III and more commands.pdf",
+  "theme": "설정 / 검색 / 치환 / 텍스트 처리",
+  "summary": "VIM 설정과 분할 창, 검색과 치환, 그리고 쉘에서 자주 쓰는 텍스트 처리 명령을 함께 다루는 확장 강의다.",
+  "narrative": [
+    "강의 전반부는 VIM을 '조금 아는 수준'에서 '실제로 맞춤화해서 쓰는 수준'으로 끌어올린다. <code>:set</code>으로 탭 폭, 자동 들여쓰기, 줄 번호를 조정하고, <code>:shell</code>이나 <code>:!cmd</code>로 외부 명령을 부르는 구조를 보여 준다. 이는 VIM이 단순 에디터가 아니라 작업 허브라는 뜻이다.",
+    "중반부의 검색과 치환은 시험에서 매우 중요하다. 단순 문자열 찾기가 아니라, 라인 시작/끝, 단어 경계, 문자 클래스, 치환 옵션까지 다루기 때문이다. 그래서 <code>/pattern</code>과 <code>:%s/old/new/g</code>를 별개가 아니라 '검색 기반 편집'으로 연결해서 이해해야 한다.",
+    "후반부는 쉘 명령 확장 파트다. 시간, 달력, 계산, 로그인 사용자, 네트워크 상태, 파일 출력, 패턴 검색, 파일 찾기, 정렬, 카운트, 파일 분할, 디스크 사용량까지 이어진다. 즉 '정보 보기 → 가공하기 → 찾기 → 요약하기' 흐름으로 외우면 된다."
+  ],
+  "concepts": [
+    {
+      "title": "선택적 설정과 .vimrc",
+      "body": "<code>:set ts=4</code>, <code>sts</code>, <code>sw</code>, <code>textwidth</code>, <code>smartindent</code>, <code>number</code>는 편집 환경을 바꾸는 명령이다. 이를 <code>~/.vimrc</code>에 넣으면 실행 시 자동 적용된다."
+    },
+    {
+      "title": "분할 창과 외부 연동",
+      "body": "<code>:vnew</code>, <code>:split</code>, <code>Ctrl+w</code> 계열로 창을 나누고 이동할 수 있다. <code>:shell</code>, <code>:!cmd</code>, <code>:source</code>는 VIM과 바깥 세계를 연결한다."
+    },
+    {
+      "title": "검색 패턴",
+      "body": "라인 시작 <code>^</code>, 라인 끝 <code>$</code>, 단어 경계 <code>\\&lt;</code>/<code>\\&gt;</code>, 문자 클래스, 논리합 <code>\\|</code>, 미리 정의된 클래스 <code>\\d</code>, <code>\\s</code>, <code>.</code>를 이해하면 검색 표현력이 확 올라간다."
+    },
+    {
+      "title": "쉘 명령의 역할 묶음",
+      "body": "<code>grep</code>은 파일 내용 검색, <code>find</code>는 파일/디렉터리 이름 검색, <code>sort</code>는 정렬, <code>wc</code>는 개수 세기, <code>split</code>은 파일 분할, <code>df</code>/<code>du</code>는 디스크 사용량 확인이다."
+    }
+  ],
+  "commands": [
+    {
+      "name": "VIM 설정",
+      "syntax": ":set ts=4\n:set sw=4\n:set smartindent\n:set number\n:set fileencoding=utf-8",
+      "idea": "탭, 들여쓰기, 줄 번호, 인코딩처럼 편집 환경 자체를 제어한다.",
+      "example": ":set number\n:set fileencoding=utf-8",
+      "pitfall": "<code>encoding</code>과 <code>fileencoding</code>은 같은 말처럼 보이지만 표시 인코딩과 현재 파일 인코딩 맥락이 다를 수 있다."
+    },
+    {
+      "name": "검색과 치환",
+      "syntax": "/pattern\nn\nN\n:%s/pattern/string/g",
+      "idea": "찾고, 다음 결과로 이동하고, 범위를 지정해 치환한다.",
+      "example": "/You\n:%s/You/you/g",
+      "pitfall": "<code>g</code> 옵션이 없으면 한 줄 안에서 첫 번째 일치만 바뀐다."
+    },
+    {
+      "name": "grep / find / sort / wc",
+      "syntax": "grep pattern files\nfind dir -name \"pattern\"\nsort [-n] [-r] file\nwc [-lwc] file",
+      "idea": "내용 검색, 이름 검색, 정렬, 개수 세기를 담당하는 대표 텍스트 처리 도구다.",
+      "example": "grep -n \"from\" file2\nfind . -name \"*.txt\"\nsort -n scores.txt\nwc -l main.c",
+      "pitfall": "<code>grep</code>과 <code>find</code>의 검색 대상이 다르다. 하나는 파일 내용, 다른 하나는 파일 이름/경로다."
+    },
+    {
+      "name": "date / cal / bc / users 계열",
+      "syntax": "date [-u]\ncal [month] [year]\nbc\nusers\nwho\nw\nwhoami\nid",
+      "idea": "시간, 달력, 계산, 사용자 식별과 로그인 상태를 보는 기본 명령 묶음이다.",
+      "example": "date -u\ncal 3 2026\nbc -l\nwhoami\nid",
+      "pitfall": "<code>users</code>, <code>who</code>, <code>w</code>, <code>whoami</code>는 모두 사용자 관련이지만 보여 주는 정보 깊이가 다르다."
+    },
+    {
+      "name": "cat / split / df / du",
+      "syntax": "cat file1 file2 > new\nsplit [-l n] in_file out_prefix\ndf\ndu -sh dir",
+      "idea": "파일 합치기, 큰 파일 나누기, 파일 시스템/디렉터리 용량 확인에 쓴다.",
+      "example": "cat a.txt b.txt > merged.txt\nsplit -l 1000 big.txt part_\ndu -sh .",
+      "pitfall": "<code>df</code>는 파일 시스템 단위, <code>du</code>는 디렉터리/파일 사용량 단위라는 차이가 있다."
+    }
+  ],
+  "pitfalls": [
+    "<code>g</code> 옵션 없이 치환하면 한 줄에서 첫 매치만 바뀐다.",
+    "<code>grep</code>은 '파일 내용'이고 <code>find</code>는 '파일 이름과 경로'다.",
+    "<code>who</code>는 로그인 정보, <code>w</code>는 로그인 정보에 현재 작업까지 덧붙여 보여 준다.",
+    "<code>sort</code> 기본은 문자열 정렬이며 숫자 정렬은 <code>-n</code>이 필요하다."
+  ],
+  "checklist": [
+    "<code>.vimrc</code>에 설정을 넣는 이유를 설명할 수 있다.",
+    "검색 패턴에서 <code>^</code>, <code>$</code>, <code>\\d</code>, <code>\\s</code> 의미를 말할 수 있다.",
+    "<code>grep</code>, <code>find</code>, <code>sort</code>, <code>wc</code>를 문제 유형에 맞게 고를 수 있다."
+  ],
+  "quiz": [
+    {
+      "q": "<code>:%s/You/you/g</code>에서 <code>%</code>와 <code>g</code>는 각각 무엇을 뜻하는가?",
+      "a": "<code>%</code>는 전체 줄 범위(1,$), <code>g</code>는 각 줄에서 모든 일치를 치환하라는 뜻이다."
+    },
+    {
+      "q": "왜 <code>grep</code>과 <code>find</code>를 헷갈리면 안 되는가?",
+      "a": "질문 대상이 다르기 때문이다. 내용 안의 패턴을 찾는지, 파일/디렉터리 이름 자체를 찾는지에 따라 써야 하는 명령이 갈린다."
+    },
+    {
+      "q": "<code>du -sh</code>와 <code>df</code>의 차이는?",
+      "a": "<code>du</code>는 특정 디렉터리나 파일이 실제로 쓰는 크기를 보고, <code>df</code>는 파일 시스템 전체의 남은 공간과 사용량을 본다."
+    }
+  ]
+}

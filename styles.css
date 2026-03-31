@@ -26,6 +26,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -37,6 +39,7 @@ body {
     radial-gradient(circle at top right, rgba(12, 124, 134, 0.12), transparent 26%),
     linear-gradient(180deg, #f8f2e8 0%, #f1e7d4 100%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body::before {
@@ -483,6 +486,18 @@ pre code {
   margin: 0;
 }
 
+.lecture-header h3,
+.lecture-header p,
+.lecture-copy p,
+.concept-card p,
+.command-card p,
+.pitfall-list li,
+.checklist li,
+.quiz details p {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
 .concept-grid,
 .command-grid {
   display: grid;
@@ -714,10 +729,33 @@ pre code {
 
   .lecture {
     padding: 18px;
+    scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 112px);
   }
 
   .lecture-nav {
-    top: 8px;
+    top: calc(env(safe-area-inset-top, 0px) + 8px);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-inline: 2px;
+    margin-inline: -2px;
+  }
+
+  .lecture-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .lecture-header h3 {
+    font-size: 1.9rem;
+    line-height: 1.08;
+  }
+
+  .lecture-header p,
+  .lecture-copy p {
+    font-size: 1rem;
+    line-height: 1.82;
   }
 
   .stats,

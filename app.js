@@ -3,7 +3,7 @@ const library =
   (window.courseData ? { generatedAt: null, courseOrder: ["default"], courses: [{ id: "default", ...window.courseData }] } : null);
 
 const DEFAULT_LABELS = {
-  courseEyebrow: "PDF 기반 시험 강의 노트",
+  courseEyebrow: "강의 자료 기반 시험 노트",
   quickGuideLabel: "Quick Guide",
   quickGuideTitle: "핵심 생존 가이드",
   atlasLabel: "Exam Atlas",
@@ -16,6 +16,8 @@ const DEFAULT_LABELS = {
   lectureSyntaxLabel: "답안 틀",
   lectureExampleLabel: "예시",
   lectureDetailEmpty: "아직 이 강의의 시험용 핵심 카드가 작성되지 않았습니다.",
+  statsSourceCountLabel: "PDF 묶음",
+  statsSourceMeasureLabel: "총 페이지",
   statsLectureCards: "핵심 카드",
   statsAtlasItems: "아틀라스 항목",
 };
@@ -81,6 +83,13 @@ function formatDateLabel(isoString) {
   });
 }
 
+function formatNumber(value) {
+  if (!Number.isFinite(value)) {
+    return `${value ?? ""}`;
+  }
+  return value.toLocaleString("ko-KR");
+}
+
 function getCourseLabels(meta) {
   return { ...DEFAULT_LABELS, ...meta };
 }
@@ -97,10 +106,11 @@ function renderCourseTabs(courseList, activeId) {
     .map((course) => {
       const count = course.meta?.sources?.length ?? 0;
       const label = course.meta?.courseLabel ?? course.meta?.title ?? course.id;
+      const sourceCountLabel = course.meta?.statsSourceCountLabel ?? DEFAULT_LABELS.statsSourceCountLabel;
       return `
         <a class="course-tab ${course.id === activeId ? "is-active" : ""}" href="${buildCourseHref(course.id)}">
           <span>${label}</span>
-          <small>${count} PDFs</small>
+          <small>${count} ${sourceCountLabel}</small>
         </a>
       `;
     })
@@ -275,7 +285,9 @@ function renderAtlas(groups, filterText = "") {
 
 function renderCourse(course) {
   const labels = getCourseLabels(course.meta);
-  const totalPages = course.meta.sources.reduce((sum, source) => sum + source.pages, 0);
+  const totalSourceMeasure =
+    course.meta.sourceMeasureTotal ??
+    course.meta.sources.reduce((sum, source) => sum + (source.metric ?? source.pages ?? 0), 0);
   const totalLectureCards = course.lectures.reduce((sum, lecture) => sum + lecture.commands.length, 0);
   const totalAtlasItems = course.commandAtlas.reduce((sum, group) => sum + group.items.length, 0);
   const draftLectureCount = course.lectures.filter((lecture) => lecture.status === "draft").length;
@@ -294,8 +306,8 @@ function renderCourse(course) {
   commandFilter.placeholder = labels.atlasFilterPlaceholder;
 
   const stats = [
-    { value: `${course.meta.sources.length}`, label: "PDF 묶음" },
-    { value: `${totalPages}`, label: "총 페이지" },
+    { value: `${formatNumber(course.meta.sources.length)}`, label: labels.statsSourceCountLabel },
+    { value: `${formatNumber(totalSourceMeasure)}`, label: labels.statsSourceMeasureLabel },
     { value: `${course.lectures.length}`, label: "학습 섹션" },
     { value: `${totalLectureCards}`, label: labels.statsLectureCards },
     { value: `${totalAtlasItems}`, label: labels.statsAtlasItems },
@@ -380,7 +392,7 @@ function renderCourse(course) {
             <div class="lecture-meta">
               <span class="type-pill">${typeLabel}</span>
               ${statusLabel ? `<span class="status-pill">${statusLabel}</span>` : ""}
-              <span class="source-pill">${lecture.source} · ${lecture.pages}p</span>
+              <span class="source-pill">${lecture.sourceDisplay ?? lecture.source}${lecture.sourceMetricLabel ? ` · ${lecture.sourceMetricLabel}` : ""}</span>
               <span class="theme-pill">${lecture.theme}</span>
             </div>
           </header>
@@ -428,7 +440,7 @@ function renderCourse(course) {
     )
     .join("");
 
-  sourceNote.innerHTML = `총 ${course.meta.sources.length}개 PDF, ${totalPages}페이지를 바탕으로 재구성함.${generatedAtLabel ? ` · 데이터 생성: <code>${generatedAtLabel}</code>` : ""}`;
+  sourceNote.innerHTML = `총 ${formatNumber(course.meta.sources.length)}개 자료를 바탕으로 재구성함 · ${labels.statsSourceMeasureLabel}: <code>${formatNumber(totalSourceMeasure)}</code>${generatedAtLabel ? ` · 데이터 생성: <code>${generatedAtLabel}</code>` : ""}`;
 
   renderAtlas(course.commandAtlas, commandFilter.value);
 }

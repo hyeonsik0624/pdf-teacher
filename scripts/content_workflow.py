@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import logging
 import re
+import unicodedata
+from fnmatch import fnmatch
 from pathlib import Path
 
 try:
@@ -29,6 +31,10 @@ def natural_key(value: str) -> list[object]:
 def slugify(value: str) -> str:
     slug = re.sub(r"[^a-zA-Z0-9]+", "-", value).strip("-").lower()
     return slug or "lecture"
+
+
+def normalize_source_name(value: str) -> str:
+    return unicodedata.normalize("NFC", value.replace("\\", "/"))
 
 
 def prettify_title(file_name: str) -> str:
@@ -58,6 +64,113 @@ def extract_pdf_text(path: Path) -> str:
         text = page.extract_text() or ""
         chunks.append(f"=== PAGE {index} ===\n{text.strip()}\n")
     return "\n".join(chunks).strip() + "\n"
+
+
+def read_text_source(path: Path) -> str:
+    return path.read_text(encoding="utf-8", errors="ignore").strip() + "\n"
+
+
+def count_text_characters(path: Path) -> int:
+    return len(path.read_text(encoding="utf-8", errors="ignore").strip())
+
+
+def _normalize_patterns(values: object) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    return [normalize_source_name(str(value)) for value in values if isinstance(value, str) and value.strip()]
+
+
+def _is_hidden_relative(path: Path) -> bool:
+    return any(part.startswith(".") for part in path.parts)
+
+
+def get_source_extensions(meta: dict) -> list[str]:
+    values = meta.get("sourceExtensions")
+    if isinstance(values, list):
+        extensions = []
+        for value in values:
+            if not isinstance(value, str) or not value.strip():
+                continue
+            extension = value.lower()
+            if not extension.startswith("."):
+                extension = f".{extension}"
+            extensions.append(extension)
+        if extensions:
+            return extensions
+    return [".pdf"]
+
+
+def list_source_files(meta: dict) -> list[Path]:
+    source_folder = Path(meta["sourceFolder"]).expanduser()
+    recursive = bool(meta.get("sourceRecursive", False))
+    extensions = set(get_source_extensions(meta))
+    exclude_patterns = _normalize_patterns(meta.get("sourceExcludePatterns"))
+
+    if recursive:
+        candidates = [path for path in source_folder.rglob("*") if path.is_file()]
+    else:
+        candidates = [path for path in source_folder.glob("*") if path.is_file()]
+
+    source_paths: list[Path] = []
+    for path in candidates:
+        if path.suffix.lower() not in extensions:
+            continue
+
+        relative_path = path.relative_to(source_folder)
+        if _is_hidden_relative(relative_path):
+            continue
+
+        normalized_relative = normalize_source_name(relative_path.as_posix())
+        if any(fnmatch(normalized_relative, pattern) or fnmatch(path.name, pattern) for pattern in exclude_patterns):
+            continue
+
+        source_paths.append(path)
+
+    return sorted(
+        source_paths,
+        key=lambda path: natural_key(normalize_source_name(path.relative_to(source_folder).as_posix())),
+    )
+
+
+def describe_source_file(path: Path, source_folder: Path) -> dict:
+    relative_name = normalize_source_name(path.relative_to(source_folder).as_posix())
+    display_name = normalize_source_name(path.name)
+    source_type = path.suffix.lower().lstrip(".")
+
+    if path.suffix.lower() == ".pdf":
+        metric = count_pdf_pages(path)
+        metric_label = f"{metric}p"
+    else:
+        metric = count_text_characters(path)
+        metric_label = f"{metric:,}자"
+
+    return {
+        "file": relative_name,
+        "name": display_name,
+        "type": source_type,
+        "metric": metric,
+        "metricLabel": metric_label,
+    }
+
+
+def extract_source_text(path: Path) -> str:
+    if path.suffix.lower() == ".pdf":
+        return extract_pdf_text(path)
+    return read_text_source(path)
+
+
+def get_source_stat_labels(meta: dict, sources: list[dict]) -> tuple[str, str]:
+    count_label = meta.get("statsSourceCountLabel")
+    measure_label = meta.get("statsSourceMeasureLabel")
+    if isinstance(count_label, str) and count_label.strip() and isinstance(measure_label, str) and measure_label.strip():
+        return count_label, measure_label
+
+    source_types = {source.get("type") for source in sources}
+    if source_types == {"pdf"}:
+        return "PDF 묶음", "총 페이지"
+    if source_types == {"txt"}:
+        return "TXT 전사", "총 글자 수"
+    return "자료 묶음", "총 분량"
 
 
 def list_course_dirs() -> list[Path]:
@@ -97,6 +210,7 @@ def get_course_lectures_dir(course_dir: Path) -> Path:
 def make_draft_lecture(source_entry: dict, order: int) -> dict:
     suggested_file = f"{slugify(Path(source_entry['file']).stem)}.json"
     pretty_title = prettify_title(source_entry["file"])
+    source_kind = source_entry.get("type", "source").upper()
 
     return {
         "id": f"draft-{slugify(Path(source_entry['file']).stem)}",
@@ -106,11 +220,13 @@ def make_draft_lecture(source_entry: dict, order: int) -> dict:
         "type": "pending",
         "title": f"{pretty_title} 해설 준비 중",
         "source": source_entry["file"],
-        "pages": source_entry["pages"],
-        "theme": "새 PDF 감지됨",
-        "summary": "PDF는 자동으로 감지됐지만 아직 시험용 해설 데이터 파일이 작성되지 않았습니다.",
+        "sourceDisplay": source_entry.get("name", source_entry["file"]),
+        "sourceMetricLabel": source_entry.get("metricLabel", ""),
+        "pages": source_entry.get("metric", 0),
+        "theme": "새 자료 감지됨",
+        "summary": "소스 파일은 자동으로 감지됐지만 아직 시험용 해설 데이터 파일이 작성되지 않았습니다.",
         "narrative": [
-            f"이 PDF는 소스 폴더에서 자동 감지되었습니다. 지금 단계에서는 <code>{suggested_file}</code> 해설 파일이 없어서 임시 카드만 표시됩니다.",
+            f"이 {source_kind} 자료는 소스 폴더에서 자동 감지되었습니다. 지금 단계에서는 <code>{suggested_file}</code> 해설 파일이 없어서 임시 카드만 표시됩니다.",
             "새 강의를 본격 반영하려면 같은 과목의 기존 강의 JSON 하나를 복사해 제목, 요약, 핵심 개념, 시험용 카드, 체크리스트, 퀴즈를 채운 뒤 빌드 스크립트를 다시 실행하면 됩니다."
         ],
         "concepts": [],
@@ -149,6 +265,15 @@ def validate_site_data(site_data: dict, course_id: str = "course") -> list[str]:
 
     for field in ("title", "summary", "sourceFolder"):
         _validate_str(meta.get(field), f"{course_id}.meta.{field}", errors)
+
+    if "sourceExtensions" in meta:
+        _validate_list_of_str(meta.get("sourceExtensions"), f"{course_id}.meta.sourceExtensions", errors)
+
+    if "sourceExcludePatterns" in meta:
+        _validate_list_of_str(meta.get("sourceExcludePatterns"), f"{course_id}.meta.sourceExcludePatterns", errors)
+
+    if "sourceRecursive" in meta and not isinstance(meta.get("sourceRecursive"), bool):
+        errors.append(f"{course_id}.meta.sourceRecursive must be a boolean")
 
     _validate_list_of_str(site_data.get("fastRecall"), f"{course_id}.fastRecall", errors)
 

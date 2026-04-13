@@ -8,12 +8,15 @@ from pathlib import Path
 
 from content_workflow import (
     OUTPUT_FILE,
-    count_pdf_pages,
+    describe_source_file,
     get_course_lectures_dir,
     get_course_site_file,
+    get_source_stat_labels,
+    list_source_files,
     load_json,
     make_draft_lecture,
     natural_key,
+    normalize_source_name,
     resolve_course_dirs,
     slugify,
     validate_lecture_data,
@@ -33,14 +36,19 @@ def build_course_payload(course_dir: Path, generated_at: str) -> dict:
 
     source_folder = Path(site_data["meta"]["sourceFolder"]).expanduser()
     if not source_folder.exists():
-        raise SystemExit(f"PDF 폴더가 없습니다: {source_folder}")
+        raise SystemExit(f"소스 폴더가 없습니다: {source_folder}")
 
     public_meta = {key: value for key, value in site_data["meta"].items() if key != "sourceFolder"}
 
-    pdf_paths = sorted(source_folder.glob("*.pdf"), key=lambda path: natural_key(path.name))
-    sources = [{"file": pdf_path.name, "pages": count_pdf_pages(pdf_path)} for pdf_path in pdf_paths]
-    pages_by_file = {entry["file"]: entry["pages"] for entry in sources}
+    source_paths = list_source_files(site_data["meta"])
+    sources = [describe_source_file(path, source_folder) for path in source_paths]
+    metric_by_file = {entry["file"]: entry["metric"] for entry in sources}
+    metric_label_by_file = {entry["file"]: entry["metricLabel"] for entry in sources}
+    name_by_file = {entry["file"]: entry["name"] for entry in sources}
+    type_by_file = {entry["file"]: entry["type"] for entry in sources}
     source_order = {entry["file"]: index for index, entry in enumerate(sources, start=1)}
+    stats_source_count_label, stats_source_measure_label = get_source_stat_labels(site_data["meta"], sources)
+    source_measure_total = sum(entry["metric"] for entry in sources)
 
     lectures_dir = get_course_lectures_dir(course_dir)
     authored_lectures = []
@@ -55,6 +63,7 @@ def build_course_payload(course_dir: Path, generated_at: str) -> dict:
 
     for lecture_path in lecture_files:
         lecture = load_json(lecture_path)
+        lecture["source"] = normalize_source_name(lecture.get("source", ""))
         errors = validate_lecture_data(
             lecture,
             file_name=str(Path("content/courses") / course_dir.name / "lectures" / lecture_path.name),
@@ -65,9 +74,12 @@ def build_course_payload(course_dir: Path, generated_at: str) -> dict:
         lecture.setdefault("status", "ready")
         lecture.setdefault("type", "core")
         lecture.setdefault("order", source_order.get(lecture.get("source", ""), len(authored_lectures) + 1))
-        lecture["pages"] = pages_by_file.get(lecture.get("source", ""), 0)
+        lecture["pages"] = metric_by_file.get(lecture.get("source", ""), 0)
+        lecture["sourceMetricLabel"] = metric_label_by_file.get(lecture.get("source", ""), "")
+        lecture.setdefault("sourceDisplay", name_by_file.get(lecture.get("source", ""), lecture.get("source", "")))
+        lecture["sourceType"] = type_by_file.get(lecture.get("source", ""), "")
 
-        if lecture.get("source") not in pages_by_file:
+        if lecture.get("source") not in metric_by_file:
             lecture["status"] = "missing-source"
 
         authored_lectures.append(lecture)
@@ -94,6 +106,9 @@ def build_course_payload(course_dir: Path, generated_at: str) -> dict:
         "meta": {
             **public_meta,
             "courseId": course_dir.name,
+            "statsSourceCountLabel": stats_source_count_label,
+            "statsSourceMeasureLabel": stats_source_measure_label,
+            "sourceMeasureTotal": source_measure_total,
             "sources": sources,
             "generatedAt": generated_at,
             "authoredLectureCount": len(authored_lectures),
@@ -125,7 +140,7 @@ def main() -> int:
 
     for course in courses:
         print(
-            f"- {course['id']}: PDFs {len(course['meta']['sources'])}, "
+            f"- {course['id']}: sources {len(course['meta']['sources'])}, "
             f"authored {course['meta']['authoredLectureCount']}, "
             f"draft {course['meta']['draftLectureCount']}"
         )
@@ -140,7 +155,7 @@ def main() -> int:
 
         missing_sources = [lecture for lecture in course["lectures"] if lecture["status"] == "missing-source"]
         if missing_sources:
-            print("  Missing source PDF:")
+            print("  Missing source file:")
             for lecture in missing_sources:
                 print(f"  - {lecture['source']}")
 

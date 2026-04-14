@@ -4,8 +4,17 @@ const library =
 
 const DEFAULT_LABELS = {
   courseEyebrow: "강의 자료 기반 시험 노트",
+  memoryLabel: "시험 직전 암기 문장",
   starterLabel: "Start Here",
   starterTitle: "처음 듣는 사람용 바닥 개념",
+  overviewLabel: "Overview",
+  overviewTitle: "시험장에서 바로 써먹는 큰 그림",
+  cramLabel: "Cram Route",
+  cramTitle: "60분 압축 복습 루트",
+  lectureSectionLabel: "Deep Dive",
+  lectureSectionTitle: "강의별 시험용 재설명",
+  lecturePrimerMiniLabel: "Primer",
+  lecturePrimerTitle: "처음부터 이해하는 기초 해설",
   quickGuideLabel: "Quick Guide",
   quickGuideTitle: "핵심 생존 가이드",
   atlasLabel: "Exam Atlas",
@@ -40,14 +49,21 @@ const courseTabsRoot = document.querySelector("#course-tabs");
 const heroTitle = document.querySelector("#hero-title");
 const heroSummary = document.querySelector("#hero-summary");
 const statsRoot = document.querySelector("#stats");
+const memoryLabel = document.querySelector("#memory-label");
 const memoryRoot = document.querySelector("#memory-lines");
 const starterPanel = document.querySelector("#starter-panel");
 const starterGuideRoot = document.querySelector("#starter-guide");
 const starterLabel = document.querySelector("#starter-label");
 const starterTitle = document.querySelector("#starter-title");
+const overviewLabel = document.querySelector("#overview-label");
+const overviewTitle = document.querySelector("#overview-title");
+const cramLabel = document.querySelector("#cram-label");
+const cramTitle = document.querySelector("#cram-title");
 const examMapRoot = document.querySelector("#exam-map");
 const cramPlanRoot = document.querySelector("#cram-plan");
 const vimGroupsRoot = document.querySelector("#vim-groups");
+const lectureSectionLabel = document.querySelector("#lecture-section-label");
+const lectureSectionTitle = document.querySelector("#lecture-section-title");
 const lectureNavRoot = document.querySelector("#lecture-nav");
 const lectureListRoot = document.querySelector("#lecture-list");
 const atlasGroupsRoot = document.querySelector("#atlas-groups");
@@ -166,6 +182,35 @@ function renderConceptSection(lecture) {
   `;
 }
 
+function renderPrimerSection(lecture, labels) {
+  if (!lecture.basics?.length) {
+    return "";
+  }
+
+  return `
+    <section>
+      <div class="section-head">
+        <div>
+          <p class="mini-label">${labels.lecturePrimerMiniLabel}</p>
+          <h3>${labels.lecturePrimerTitle}</h3>
+        </div>
+      </div>
+      <div class="concept-grid">
+        ${lecture.basics
+          .map(
+            (item) => `
+              <article class="concept-card primer-card">
+                <h4>${item.title}</h4>
+                <p>${item.body}</p>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+    </section>
+  `;
+}
+
 function renderDetailSection(lecture, labels) {
   if (!lecture.commands?.length) {
     return `
@@ -201,7 +246,7 @@ function renderDetailSection(lecture, labels) {
                 <pre><code>${command.syntax}</code></pre>
                 <h4>${labels.lectureExampleLabel}</h4>
                 <pre><code>${command.example}</code></pre>
-                <h4>시험 함정</h4>
+                <h4>헷갈리기 쉬운 지점</h4>
                 <p>${command.pitfall}</p>
               </article>
             `
@@ -319,12 +364,19 @@ function renderCourse(course) {
   const draftLectureCount = course.lectures.filter((lecture) => lecture.status === "draft").length;
   const generatedAtLabel = formatDateLabel(course.meta.generatedAt);
 
-  document.title = `${course.meta.title} | 강의 자료 시험 노트`;
+  document.title = `${course.meta.title} | 강의 자료 노트`;
   heroEyebrow.textContent = labels.courseEyebrow;
   heroTitle.textContent = course.meta.title;
   heroSummary.innerHTML = course.meta.summary;
+  memoryLabel.textContent = labels.memoryLabel;
   starterLabel.textContent = labels.starterLabel;
   starterTitle.textContent = labels.starterTitle;
+  overviewLabel.textContent = labels.overviewLabel;
+  overviewTitle.textContent = labels.overviewTitle;
+  cramLabel.textContent = labels.cramLabel;
+  cramTitle.textContent = labels.cramTitle;
+  lectureSectionLabel.textContent = labels.lectureSectionLabel;
+  lectureSectionTitle.textContent = labels.lectureSectionTitle;
   quickGuideLabel.textContent = labels.quickGuideLabel;
   quickGuideTitle.textContent = labels.quickGuideTitle;
   atlasLabel.textContent = labels.atlasLabel;
@@ -428,6 +480,7 @@ function renderCourse(course) {
           <div class="lecture-layout">
             <div class="lecture-copy">
               ${lecture.narrative.map((paragraph) => `<p>${paragraph}</p>`).join("")}
+              ${renderPrimerSection(lecture, labels)}
               ${renderConceptSection(lecture)}
               ${renderDetailSection(lecture, labels)}
             </div>

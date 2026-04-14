@@ -364,9 +364,19 @@ def validate_lecture_data(lecture: dict, file_name: str = "lecture") -> list[str
     _validate_list_of_str(lecture.get("pitfalls"), f"{file_name}.pitfalls", errors)
     _validate_list_of_str(lecture.get("checklist"), f"{file_name}.checklist", errors)
 
+    if "basics" in lecture and not isinstance(lecture.get("basics"), list):
+        errors.append(f"{file_name}.basics must be a list")
+
     for field in ("concepts", "commands", "quiz"):
         if not isinstance(lecture.get(field), list):
             errors.append(f"{file_name}.{field} must be a list")
+
+    for index, item in enumerate(lecture.get("basics", [])):
+        if not isinstance(item, dict):
+            errors.append(f"{file_name}.basics[{index}] must be an object")
+            continue
+        _validate_str(item.get("title"), f"{file_name}.basics[{index}].title", errors)
+        _validate_str(item.get("body"), f"{file_name}.basics[{index}].body", errors)
 
     for index, item in enumerate(lecture.get("concepts", [])):
         if not isinstance(item, dict):

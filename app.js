@@ -4,6 +4,8 @@ const library =
 
 const DEFAULT_LABELS = {
   courseEyebrow: "강의 자료 기반 시험 노트",
+  starterLabel: "Start Here",
+  starterTitle: "처음 듣는 사람용 바닥 개념",
   quickGuideLabel: "Quick Guide",
   quickGuideTitle: "핵심 생존 가이드",
   atlasLabel: "Exam Atlas",
@@ -39,6 +41,10 @@ const heroTitle = document.querySelector("#hero-title");
 const heroSummary = document.querySelector("#hero-summary");
 const statsRoot = document.querySelector("#stats");
 const memoryRoot = document.querySelector("#memory-lines");
+const starterPanel = document.querySelector("#starter-panel");
+const starterGuideRoot = document.querySelector("#starter-guide");
+const starterLabel = document.querySelector("#starter-label");
+const starterTitle = document.querySelector("#starter-title");
 const examMapRoot = document.querySelector("#exam-map");
 const cramPlanRoot = document.querySelector("#cram-plan");
 const vimGroupsRoot = document.querySelector("#vim-groups");
@@ -283,6 +289,26 @@ function renderAtlas(groups, filterText = "") {
     .join("");
 }
 
+function renderStarterGuide(items) {
+  if (!items?.length) {
+    starterGuideRoot.innerHTML = "";
+    starterPanel.hidden = true;
+    return;
+  }
+
+  starterPanel.hidden = false;
+  starterGuideRoot.innerHTML = items
+    .map(
+      (item) => `
+        <article class="sub-card">
+          <h3>${item.title}</h3>
+          <p>${item.body}</p>
+        </article>
+      `
+    )
+    .join("");
+}
+
 function renderCourse(course) {
   const labels = getCourseLabels(course.meta);
   const totalSourceMeasure =
@@ -293,10 +319,12 @@ function renderCourse(course) {
   const draftLectureCount = course.lectures.filter((lecture) => lecture.status === "draft").length;
   const generatedAtLabel = formatDateLabel(course.meta.generatedAt);
 
-  document.title = `${course.meta.title} | PDF 시험 강의 노트`;
+  document.title = `${course.meta.title} | 강의 자료 시험 노트`;
   heroEyebrow.textContent = labels.courseEyebrow;
   heroTitle.textContent = course.meta.title;
   heroSummary.innerHTML = course.meta.summary;
+  starterLabel.textContent = labels.starterLabel;
+  starterTitle.textContent = labels.starterTitle;
   quickGuideLabel.textContent = labels.quickGuideLabel;
   quickGuideTitle.textContent = labels.quickGuideTitle;
   atlasLabel.textContent = labels.atlasLabel;
@@ -329,6 +357,7 @@ function renderCourse(course) {
     .join("");
 
   memoryRoot.innerHTML = course.fastRecall.map((item) => `<li>${item}</li>`).join("");
+  renderStarterGuide(course.starterGuide);
 
   examMapRoot.innerHTML = course.examMap
     .map(

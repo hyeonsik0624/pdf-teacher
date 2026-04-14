@@ -277,9 +277,19 @@ def validate_site_data(site_data: dict, course_id: str = "course") -> list[str]:
 
     _validate_list_of_str(site_data.get("fastRecall"), f"{course_id}.fastRecall", errors)
 
+    if "starterGuide" in site_data and not isinstance(site_data.get("starterGuide"), list):
+        errors.append(f"{course_id}.starterGuide must be a list")
+
     for field in ("examMap", "cramPlan", "vimCheat", "commandAtlas", "studyDrills"):
         if not isinstance(site_data.get(field), list):
             errors.append(f"{course_id}.{field} must be a list")
+
+    for index, item in enumerate(site_data.get("starterGuide", [])):
+        if not isinstance(item, dict):
+            errors.append(f"{course_id}.starterGuide[{index}] must be an object")
+            continue
+        _validate_str(item.get("title"), f"{course_id}.starterGuide[{index}].title", errors)
+        _validate_str(item.get("body"), f"{course_id}.starterGuide[{index}].body", errors)
 
     for index, item in enumerate(site_data.get("examMap", [])):
         if not isinstance(item, dict):

@@ -28,7 +28,7 @@ jobs:
       - name: Prepare static artifact
         run: |
           mkdir -p dist
-          cp index.html styles.css app.js study-data.js robots.txt dist/
+          cp *.html *.css *.js robots.txt dist/
           cp .nojekyll dist/
           if [ -f CNAME ]; then cp CNAME dist/; fi
 

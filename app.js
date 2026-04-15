@@ -48,6 +48,7 @@ const heroEyebrow = document.querySelector("#hero-eyebrow");
 const courseTabsRoot = document.querySelector("#course-tabs");
 const heroTitle = document.querySelector("#hero-title");
 const heroSummary = document.querySelector("#hero-summary");
+const transcriptSiteLink = document.querySelector("#transcript-site-link");
 const statsRoot = document.querySelector("#stats");
 const memoryLabel = document.querySelector("#memory-label");
 const memoryRoot = document.querySelector("#memory-lines");
@@ -114,6 +115,13 @@ function formatNumber(value) {
 
 function getCourseLabels(meta) {
   return { ...DEFAULT_LABELS, ...meta };
+}
+
+function buildSiblingHref(fileName, courseId) {
+  const next = new URL(fileName, window.location.href);
+  next.searchParams.set("course", courseId);
+  next.hash = "";
+  return `${next.pathname}?${next.searchParams.toString()}`;
 }
 
 function buildCourseHref(courseId) {
@@ -368,6 +376,11 @@ function renderCourse(course) {
   heroEyebrow.textContent = labels.courseEyebrow;
   heroTitle.textContent = course.meta.title;
   heroSummary.innerHTML = course.meta.summary;
+  const hasTranscriptSite = course.meta.sources?.some((source) => source.type === "txt");
+  transcriptSiteLink.hidden = !hasTranscriptSite;
+  if (hasTranscriptSite) {
+    transcriptSiteLink.href = buildSiblingHref("transcript.html", course.id);
+  }
   memoryLabel.textContent = labels.memoryLabel;
   starterLabel.textContent = labels.starterLabel;
   starterTitle.textContent = labels.starterTitle;

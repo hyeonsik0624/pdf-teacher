@@ -6,6 +6,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from build_transcript_data import write_transcript_output
 from content_workflow import (
     OUTPUT_FILE,
     describe_source_file,
@@ -120,7 +121,8 @@ def build_course_payload(course_dir: Path, generated_at: str) -> dict:
 
 def main() -> int:
     generated_at = datetime.now(timezone.utc).isoformat()
-    courses = [build_course_payload(course_dir, generated_at) for course_dir in resolve_course_dirs()]
+    course_dirs = resolve_course_dirs()
+    courses = [build_course_payload(course_dir, generated_at) for course_dir in course_dirs]
 
     payload = {
         "generatedAt": generated_at,
@@ -134,9 +136,12 @@ def main() -> int:
         f"window.studyLibrary = {json.dumps(payload, ensure_ascii=False, indent=2)};\n"
     )
     OUTPUT_FILE.write_text(output, encoding="utf-8")
+    transcript_courses = write_transcript_output(course_dirs, generated_at)
 
     print(f"Built {OUTPUT_FILE.name}")
+    print("Built transcript-data.js")
     print(f"- Courses scanned: {len(courses)}")
+    print(f"- Transcript courses: {len(transcript_courses)}")
 
     for course in courses:
         print(

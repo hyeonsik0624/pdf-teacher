@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>정리된 전사문</title>
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="googlebot" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="eyebrow" id="transcript-eyebrow">정리된 전사문</p>
+          <nav id="transcript-course-tabs" class="course-tabs" aria-label="전사문 과목 선택"></nav>
+        </div>
+        <div class="hero-grid transcript-hero-grid">
+          <section class="hero-copy">
+            <h1 id="transcript-title"></h1>
+            <p id="transcript-summary" class="hero-summary"></p>
+            <div class="hero-actions">
+              <a id="concept-site-link" class="action primary" href="#">개념 교재로 보기</a>
+              <a class="action secondary" href="#transcript-lectures">차시별 전사 읽기</a>
+            </div>
+            <div id="transcript-stats" class="stats"></div>
+          </section>
+          <aside class="hero-card">
+            <p class="mini-label">Reading Guide</p>
+            <ul id="transcript-reading-guide" class="memory-lines"></ul>
+          </aside>
+        </div>
+      </header>
+
+      <main class="main-layout">
+        <section class="panel" id="transcript-overview-panel">
+          <div class="section-head atlas-head">
+            <div>
+              <p class="mini-label">Browse</p>
+              <h2>강의 흐름과 전사문 찾기</h2>
+            </div>
+            <label class="searchbox" for="transcript-filter">
+              <span>필터</span>
+              <input
+                id="transcript-filter"
+                type="search"
+                placeholder="예: 주체사상, 평양, GIS"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+          <div id="transcript-overview" class="card-grid"></div>
+        </section>
+
+        <section class="panel" id="transcript-lectures">
+          <div class="section-head split-space">
+            <div>
+              <p class="mini-label">Transcript</p>
+              <h2>차시별 정리된 전사문</h2>
+            </div>
+          </div>
+          <nav id="transcript-lecture-nav" class="lecture-nav" aria-label="전사문 네비게이션"></nav>
+          <div id="transcript-lecture-list" class="lecture-list"></div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p id="transcript-source-note"></p>
+      </footer>
+    </div>
+
+    <script src="transcript-data.js"></script>
+    <script src="transcript-app.js"></script>
+  </body>
+</html>

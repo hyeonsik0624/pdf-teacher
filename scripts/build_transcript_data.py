@@ -32,6 +32,7 @@ PARAGRAPH_TARGET_CHARS = 220
 PARAGRAPH_MAX_CHARS = 340
 PARAGRAPH_MAX_UNITS = 3
 TITLE_MAX_CHARS = 30
+MIN_TOPIC_SCORE = 2
 SECTION_TRANSITION_PATTERN = re.compile(
     r"^(?:"
     r"이번 시간에는|오늘은|먼저|첫 ?번째|두 ?번째|세 ?번째|"
@@ -40,6 +41,109 @@ SECTION_TRANSITION_PATTERN = re.compile(
     r"또 하나(?:의)?|이와 관련해"
     r")"
 )
+TOPIC_STOPWORDS = {
+    "강의",
+    "주차",
+    "차시",
+    "내용",
+    "부분",
+    "정리",
+    "설명",
+    "이해",
+    "학습",
+    "목표",
+    "관점",
+    "방식",
+    "과정",
+    "구조",
+    "형태",
+    "상황",
+    "결과",
+    "문제",
+    "사실",
+    "지점",
+    "의미",
+    "핵심",
+    "처음",
+    "마지막",
+    "이번",
+    "시간",
+    "여기",
+    "이것",
+    "그것",
+    "그때",
+    "현재",
+    "당시",
+    "통해",
+    "관련",
+    "대해",
+    "이후",
+    "먼저",
+    "다음",
+    "하나",
+    "가지",
+}
+TOKEN_SUFFIXES = [
+    "으로부터",
+    "이었습니다",
+    "였습니다",
+    "이지만",
+    "하지만",
+    "하면서",
+    "에서는",
+    "으로는",
+    "에게서",
+    "까지는",
+    "부터는",
+    "이라고",
+    "이라는",
+    "입니다",
+    "합니다",
+    "하도록",
+    "되도록",
+    "에서의",
+    "에서",
+    "에게",
+    "으로",
+    "로서",
+    "로는",
+    "로의",
+    "로",
+    "까지",
+    "부터",
+    "처럼",
+    "같은",
+    "같이",
+    "마다",
+    "조차",
+    "마저",
+    "인데",
+    "이면",
+    "이란",
+    "으론",
+    "이다",
+    "다는",
+    "보다",
+    "하고",
+    "하며",
+    "하게",
+    "이고",
+    "이며",
+    "적인",
+    "에는",
+    "은",
+    "는",
+    "이",
+    "가",
+    "을",
+    "를",
+    "의",
+    "에",
+    "와",
+    "과",
+    "도",
+    "만",
+]
 
 
 def normalize_inline_text(text: str) -> str:
@@ -47,6 +151,41 @@ def normalize_inline_text(text: str) -> str:
     cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,")
     cleaned = re.sub(r"((?:[가-힣A-Za-z0-9]+(?:\s+|,\s*)){1,6})\1{2,}", r"\1", cleaned)
     return cleaned
+
+
+def normalize_keyword_token(token: str) -> str:
+    normalized = re.sub(r"[^가-힣A-Za-z0-9]", "", token).lower()
+    if not normalized:
+        return ""
+
+    changed = True
+    while changed:
+        changed = False
+        for suffix in TOKEN_SUFFIXES:
+            if normalized.endswith(suffix) and len(normalized) - len(suffix) >= 2:
+                normalized = normalized[: -len(suffix)]
+                changed = True
+                break
+
+    if normalized in TOPIC_STOPWORDS:
+        return ""
+
+    if len(normalized) < 2 and not normalized.isdigit():
+        return ""
+
+    return normalized
+
+
+def extract_keyword_tokens(text: str) -> list[str]:
+    tokens: list[str] = []
+    seen: set[str] = set()
+    for raw_token in re.findall(r"[가-힣A-Za-z0-9]+", text):
+        token = normalize_keyword_token(raw_token)
+        if not token or token in seen:
+            continue
+        tokens.append(token)
+        seen.add(token)
+    return tokens
 
 
 def normalize_transcript_text(text: str) -> str:
@@ -212,7 +351,103 @@ def derive_block_title(paragraphs: list[str], index: int) -> str:
     return title or f"정리 {index:02d}"
 
 
-def make_transcript_blocks(text: str) -> list[dict]:
+def build_topic_candidates(lecture: dict) -> list[dict]:
+    candidates: list[dict] = []
+    seen_titles: set[str] = set()
+
+    collection_order = [("concepts", "title", "body")]
+    if not lecture.get("concepts"):
+        collection_order.append(("basics", "title", "body"))
+
+    for collection_name, title_key, body_key in collection_order:
+        for item in lecture.get(collection_name, []):
+            if not isinstance(item, dict):
+                continue
+
+            title = normalize_inline_text(item.get(title_key, ""))
+            if not title or title in seen_titles:
+                continue
+
+            body = normalize_inline_text(item.get(body_key, ""))
+            candidates.append(
+                {
+                    "title": title,
+                    "title_tokens": extract_keyword_tokens(title),
+                    "body_tokens": extract_keyword_tokens(body),
+                }
+            )
+            seen_titles.add(title)
+
+    return candidates
+
+
+def score_topic_candidate(block_text: str, candidate: dict) -> float:
+    block_tokens = set(extract_keyword_tokens(block_text))
+    if not block_tokens:
+        return 0
+
+    title_overlap = [token for token in candidate["title_tokens"] if token in block_tokens]
+    body_overlap = [token for token in candidate["body_tokens"] if token in block_tokens]
+
+    score = len(title_overlap) * 4 + len(body_overlap)
+
+    if len(title_overlap) >= 2:
+        score += 4
+    elif len(title_overlap) == 1:
+        score += 1.5
+
+    normalized_block = "".join(block_text.split()).lower()
+    normalized_title = "".join(candidate["title"].split()).lower()
+    if normalized_title and normalized_title in normalized_block:
+        score += 8
+
+    return score
+
+
+def apply_large_topic_titles(blocks: list[dict], lecture: dict) -> list[dict]:
+    candidates = build_topic_candidates(lecture)
+    if not blocks or not candidates:
+        return blocks
+
+    scores = [[score_topic_candidate(block["text"], candidate) for candidate in candidates] for block in blocks]
+    assigned_indices = [max(range(len(candidates)), key=lambda idx: scores[0][idx])]
+
+    for block_index in range(1, len(blocks)):
+        row = scores[block_index]
+        current_index = assigned_indices[-1]
+        current_score = row[current_index]
+        best_index = current_index
+        best_score = current_score
+        block_text = blocks[block_index]["text"]
+        has_transition = bool(
+            re.search(r"(그러면|그럼|이제|다음은|다음으로|이어서|마지막으로|한편|여기서)", block_text[:80])
+        )
+
+        for candidate_index in range(current_index + 1, len(candidates)):
+            candidate_score = row[candidate_index]
+            if candidate_score > best_score:
+                best_index = candidate_index
+                best_score = candidate_score
+
+            should_advance = (
+                candidate_score >= current_score + 0.5
+                or (has_transition and candidate_score >= max(current_score - 1.5, MIN_TOPIC_SCORE))
+                or (current_score < MIN_TOPIC_SCORE and candidate_score >= MIN_TOPIC_SCORE)
+            )
+            if should_advance:
+                best_index = candidate_index
+                best_score = candidate_score
+                break
+
+        assigned_indices.append(best_index)
+
+    for block_index, candidate_index in enumerate(assigned_indices):
+        blocks[block_index]["title"] = candidates[candidate_index]["title"]
+
+    return blocks
+
+
+def make_transcript_blocks(text: str, lecture: dict | None = None) -> list[dict]:
     units = split_transcript_units(text)
     paragraphs = build_paragraphs(units)
     blocks: list[dict] = []
@@ -263,6 +498,9 @@ def make_transcript_blocks(text: str) -> list[dict]:
                 "text": " ".join(current).strip(),
             }
         )
+
+    if lecture:
+        apply_large_topic_titles(blocks, lecture)
 
     return blocks
 
@@ -328,7 +566,7 @@ def build_course_transcript_payload(course_dir: Path, generated_at: str) -> dict
         if not transcript_text:
             continue
 
-        transcript_blocks = make_transcript_blocks(transcript_text)
+        transcript_blocks = make_transcript_blocks(transcript_text, lecture=lecture)
         total_characters += len(transcript_text)
         total_blocks += len(transcript_blocks)
 

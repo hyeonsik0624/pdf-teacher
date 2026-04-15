@@ -168,8 +168,15 @@ function renderTranscriptBlocks(lecture, query) {
         .map(
           (block) => `
             <article class="transcript-block">
-              <span class="label">Block ${block.index}</span>
-              <p>${escapeHtml(block.text)}</p>
+              <div class="transcript-block-header">
+                <span class="label">정리 ${block.index}</span>
+                <h4 class="transcript-block-title">${escapeHtml(block.title ?? `정리 ${block.index}`)}</h4>
+              </div>
+              <div class="transcript-block-copy">
+                ${(block.paragraphs?.length ? block.paragraphs : [block.text])
+                  .map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`)
+                  .join("")}
+              </div>
             </article>
           `
         )

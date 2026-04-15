@@ -724,11 +724,17 @@ pre code {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 14px 32px rgba(22, 33, 61, 0.06);
+}
+
+.transcript-block-header {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
 .transcript-block .label {
   display: inline-block;
-  margin-bottom: 10px;
   color: var(--teal);
   font-size: 0.8rem;
   font-weight: 700;
@@ -736,7 +742,19 @@ pre code {
   text-transform: uppercase;
 }
 
-.transcript-block p {
+.transcript-block-title {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.transcript-block-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.transcript-block-copy p {
   margin: 0;
   color: var(--ink-soft);
   line-height: 1.9;

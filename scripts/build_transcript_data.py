@@ -24,23 +24,41 @@ from content_workflow import (
 
 
 TRANSCRIPT_OUTPUT_FILE = ROOT / "transcript-data.js"
-BLOCK_TARGET_CHARS = 780
-BLOCK_MAX_CHARS = 980
-BLOCK_MAX_SENTENCES = 7
+BLOCK_TARGET_CHARS = 700
+BLOCK_MIN_CHARS = 340
+BLOCK_MAX_CHARS = 920
+BLOCK_MAX_PARAGRAPHS = 4
+PARAGRAPH_TARGET_CHARS = 220
+PARAGRAPH_MAX_CHARS = 340
+PARAGRAPH_MAX_UNITS = 3
+TITLE_MAX_CHARS = 30
+SECTION_TRANSITION_PATTERN = re.compile(
+    r"^(?:"
+    r"이번 시간에는|오늘은|먼저|첫 ?번째|두 ?번째|세 ?번째|"
+    r"그러면|그럼|이제|다음(?:은|으로)?|이어서|이어(?:서)?|"
+    r"마지막으로|정리하면|한편|여기서|다시|끝으로|간단하게|"
+    r"또 하나(?:의)?|이와 관련해"
+    r")"
+)
+
+
+def normalize_inline_text(text: str) -> str:
+    cleaned = text.replace("\u00a0", " ").replace("\u200b", " ")
+    cleaned = re.sub(r"\s+", " ", cleaned).strip(" ,")
+    cleaned = re.sub(r"((?:[가-힣A-Za-z0-9]+(?:\s+|,\s*)){1,6})\1{2,}", r"\1", cleaned)
+    return cleaned
 
 
 def normalize_transcript_text(text: str) -> str:
     cleaned = text.replace("\r\n", "\n").replace("\r", "\n")
-    cleaned = re.sub(r"=== PAGE \d+ ===\s*", " ", cleaned)
-    cleaned = cleaned.replace("\u00a0", " ").replace("\u200b", " ")
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
-    cleaned = re.sub(r"((?:[가-힣A-Za-z0-9]+(?:\s+|,\s*)){1,6})\1{3,}", r"\1", cleaned)
-    return cleaned
+    cleaned = re.sub(r"=== PAGE \d+ ===\s*", "\n", cleaned)
+    lines = [normalize_inline_text(line) for line in cleaned.split("\n")]
+    return "\n".join(line for line in lines if line)
 
 
 def split_sentences(text: str) -> list[str]:
-    parts = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
-    return parts or ([text] if text else [])
+    parts = [normalize_inline_text(part) for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+    return parts or ([normalize_inline_text(text)] if text else [])
 
 
 def wrap_long_text(text: str, limit: int = BLOCK_TARGET_CHARS) -> list[str]:
@@ -68,38 +86,180 @@ def wrap_long_text(text: str, limit: int = BLOCK_TARGET_CHARS) -> list[str]:
     return chunks
 
 
+def split_transcript_units(text: str) -> list[str]:
+    units: list[str] = []
+    for raw_line in normalize_transcript_text(text).split("\n"):
+        if not raw_line:
+            continue
+
+        fragments = split_sentences(raw_line)
+        if len(fragments) == 1 and len(fragments[0]) > PARAGRAPH_MAX_CHARS:
+            fragments = wrap_long_text(fragments[0], limit=PARAGRAPH_TARGET_CHARS)
+
+        units.extend(fragment for fragment in fragments if fragment)
+
+    deduped_units: list[str] = []
+    previous_key = ""
+    for unit in units:
+        key = re.sub(r"[^가-힣A-Za-z0-9]+", "", unit).lower()
+        if key and key == previous_key:
+            continue
+        deduped_units.append(unit)
+        previous_key = key
+
+    return deduped_units
+
+
+def is_transition_unit(text: str) -> bool:
+    candidate = text.strip()
+    if not candidate:
+        return False
+
+    if "학습 목표" in candidate:
+        return True
+
+    if SECTION_TRANSITION_PATTERN.match(candidate):
+        return True
+
+    return bool(
+        len(candidate) <= 120
+        and re.search(
+            r"(알아보도록 하겠습니다|확인해 보도록 하겠습니다|설명해 드리겠습니다|설명하겠습니다|"
+            r"살펴보겠습니다|말씀드리겠습니다)$",
+            candidate,
+        )
+    )
+
+
+def build_paragraphs(units: list[str]) -> list[str]:
+    paragraphs: list[str] = []
+    current: list[str] = []
+    current_len = 0
+
+    for unit in units:
+        extra = len(unit) + (1 if current else 0)
+        should_flush = current and (
+            (is_transition_unit(unit) and current_len >= 120)
+            or current_len + extra > PARAGRAPH_MAX_CHARS
+            or len(current) >= PARAGRAPH_MAX_UNITS
+        )
+
+        if should_flush:
+            paragraphs.append(" ".join(current).strip())
+            current = []
+            current_len = 0
+
+        current.append(unit)
+        current_len += len(unit) + (1 if len(current) > 1 else 0)
+
+        if current_len >= PARAGRAPH_TARGET_CHARS:
+            paragraphs.append(" ".join(current).strip())
+            current = []
+            current_len = 0
+
+    if current:
+        paragraphs.append(" ".join(current).strip())
+
+    return paragraphs
+
+
+def derive_block_title(paragraphs: list[str], index: int) -> str:
+    if not paragraphs:
+        return f"정리 {index:02d}"
+
+    candidates = split_sentences(paragraphs[0])
+    title = paragraphs[0].strip()
+    for candidate in candidates:
+        if re.search(r"^(?:네\s+안녕하세요|안녕하세요)", candidate):
+            continue
+        title = candidate.strip()
+        break
+
+    title = re.sub(r"^(?:네\s+안녕하세요[. ]*)", "", title)
+    title = re.sub(
+        r"^(?:"
+        r"이번 시간에는|오늘은|먼저|첫 ?번째|두 ?번째|세 ?번째|"
+        r"그러면|그럼|이제|다음(?:은|으로)?|이어서|이어(?:서)?|"
+        r"마지막으로|정리하면|한편|여기서|다시|끝으로|간단하게|"
+        r"또 하나(?:의)?|이와 관련해"
+        r")\s*",
+        "",
+        title,
+    )
+    title = re.sub(
+        r"\s*(?:에 대해서|을 중심으로|를 중심으로)?\s*"
+        r"(?:간단하게\s*)?"
+        r"(?:알아보도록|확인해 보도록|설명해 드리도록|설명하도록|설명하겠습니다|"
+        r"살펴보도록|정리해 보도록|말씀드리도록)\s*하겠습니다\.?$",
+        "",
+        title,
+    ).strip(" .")
+
+    title = re.sub(
+        r"\s*(?:배워보도록|알아보도록|확인해 보도록|살펴보도록|정리해 보도록)\s*하겠습니다\.?$",
+        "",
+        title,
+    ).strip(" .")
+
+    if len(title) > TITLE_MAX_CHARS:
+        candidate = re.split(r"[,:]| 그리고 | 하지만 | 그래서 ", title)[0].strip()
+        if 8 <= len(candidate) <= TITLE_MAX_CHARS:
+            title = candidate
+
+    if len(title) > TITLE_MAX_CHARS:
+        title = f"{title[:TITLE_MAX_CHARS].rstrip()}…"
+
+    return title or f"정리 {index:02d}"
+
+
 def make_transcript_blocks(text: str) -> list[dict]:
-    sentences = split_sentences(normalize_transcript_text(text))
+    units = split_transcript_units(text)
+    paragraphs = build_paragraphs(units)
     blocks: list[dict] = []
     current: list[str] = []
     current_len = 0
 
-    for sentence in sentences:
-        fragments = wrap_long_text(sentence, limit=BLOCK_TARGET_CHARS)
-        for fragment in fragments:
-            extra = len(fragment) + (1 if current else 0)
-            should_flush = current and (
-                current_len + extra > BLOCK_MAX_CHARS or len(current) >= BLOCK_MAX_SENTENCES
+    for paragraph in paragraphs:
+        extra = len(paragraph) + (1 if current else 0)
+        should_flush = current and (
+            (is_transition_unit(paragraph) and current_len >= BLOCK_MIN_CHARS)
+            or current_len + extra > BLOCK_MAX_CHARS
+            or len(current) >= BLOCK_MAX_PARAGRAPHS
+        )
+
+        if should_flush:
+            blocks.append(
+                {
+                    "index": len(blocks) + 1,
+                    "title": derive_block_title(current, len(blocks) + 1),
+                    "paragraphs": current.copy(),
+                    "text": " ".join(current).strip(),
+                }
             )
+            current = []
+            current_len = 0
 
-            if should_flush:
-                blocks.append(
-                    {
-                        "index": len(blocks) + 1,
-                        "text": " ".join(current).strip(),
-                    }
-                )
-                current = [fragment]
-                current_len = len(fragment)
-                continue
+        current.append(paragraph)
+        current_len += len(paragraph) + (1 if len(current) > 1 else 0)
 
-            current.append(fragment)
-            current_len += extra
+        if current_len >= BLOCK_TARGET_CHARS:
+            blocks.append(
+                {
+                    "index": len(blocks) + 1,
+                    "title": derive_block_title(current, len(blocks) + 1),
+                    "paragraphs": current.copy(),
+                    "text": " ".join(current).strip(),
+                }
+            )
+            current = []
+            current_len = 0
 
     if current:
         blocks.append(
             {
                 "index": len(blocks) + 1,
+                "title": derive_block_title(current, len(blocks) + 1),
+                "paragraphs": current.copy(),
                 "text": " ".join(current).strip(),
             }
         )
